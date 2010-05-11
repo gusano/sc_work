@@ -1,0 +1,15 @@
+;-- to use this color-theme, copy color-theme-bluish.el to /home/USERNAME/.emacs.d folder and add these lines to your /home/USERNAME/.emacs config file
+
+(require 'color-theme)
+(load-file "~/.emacs.d/color-theme-bluish.el")
+(color-theme-bluish)
+
+;--- colorize numbers 
+(global-font-lock-mode 1)
+(font-lock-add-keywords 'sclang-mode
+	'(("\\b[-]?[0-9]+[e]?[-]?[0-9]?[.]?[0-9]*\\b" . font-lock-warning-face)))
+
+;-- colorize parenthesis, brackets, ...
+(font-lock-add-keywords 'sclang-mode
+	'(("[\(\)\{\}\|]" . font-lock-builtin-face)))
+
