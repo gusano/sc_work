@@ -1,3 +1,18 @@
+/*
+	from PDKtl.sc
+	20101101 - mapTo() totally rewritten in hurry (yvan volochine)
+	TODO:
+	- make it better
+	- refactor
+	- rewrite non-endless part (probably no time for that =)
+	- remove unused
+	- ability to map several nodes to a scene
+	BUGS:
+	- bad step calculation (delta ..)
+*/
+
+
+
 PocketDialKtl : MIDIKtl {
 	classvar <>verbose = false; 
 
