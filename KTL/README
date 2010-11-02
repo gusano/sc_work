@@ -1,0 +1,12 @@
+for use with Ndef or ProxySpace.
+so far (need rewrite and cleanup):
+- Behringer BCR 2000
+- Doepfer Pocket Dial (endless mode)
+
+NOTE:
+those are inspired by MIDIKTL (BCR was first written with adc/jrh help in a workshop,
+PocketDialKtl is quickly stolen from PDKtl but I plan to make it different anyway.
+
+both have a different usage than JITMIDIKTL.
+
+help files coming soon (maybe)
