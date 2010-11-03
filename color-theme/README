@@ -1,4 +1,4 @@
-;-- to use this color-theme, copy `color-theme-bluish.el' to /home/USERNAME/.emacs.d folder and add the following lines to your /home/USERNAME/.emacs config file
+;-- to use this color-theme, copy `color-theme-bluish.el' to ~/.emacs.d folder and add the following lines to your ~/.emacs config file
 ;-- you also need to have `emacs-goodies-el' package installed
 
 (require 'color-theme)
