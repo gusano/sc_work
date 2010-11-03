@@ -46,7 +46,7 @@
 		
 		str = this.source.asCompileString;
 		str = str.split($,).at(0); // keep 1st part before any comma
-		result = str.findRegexp("~[a-zA-Z]*+(.ar)"); // look for "~xxxxxx.ar"
+		result = str.findRegexp("~[a-zA-Z0-9]*+(.ar)"); // look for "~xxxxxx.ar"
 		if ( result.size > 0, 
 			{ ^result[0][1] },
 			{ ^nil }
