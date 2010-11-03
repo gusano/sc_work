@@ -18,7 +18,7 @@ PocketDialKtl : MIDIKtl {
 
 	var <>softWithin = 0.05, <lastVals;	// for normal mode
 	var <>step, <>endless;				// for endless mode
-
+	
 	var <proxyDict, <proxyParamsDict;
 	var <>inform = true;
 	
