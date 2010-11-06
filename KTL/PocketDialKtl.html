@@ -1,0 +1,264 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+               "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+lang="en" xml:lang="en">
+<head>
+<title>PocketDialKtl</title>
+<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1"/>
+<meta name="generator" content="Org-mode"/>
+<meta name="generated" content="2010-11-06 03:36:26 CET"/>
+<meta name="author" content="Yvan Volochine"/>
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  html { font-family: Times, serif; font-size: 12pt; }
+  .title  { text-align: center; }
+  .todo   { color: red; }
+  .done   { color: green; }
+  .tag    { background-color:lightblue; font-weight:normal }
+  .target { }
+  .timestamp { color: grey }
+  .timestamp-kwd { color: CadetBlue }
+  p.verse { margin-left: 3% }
+  pre {
+	border: 1pt solid #AEBDCC;
+	background-color: #F3F5F7;
+	padding: 5pt;
+	font-family: courier, monospace;
+        font-size: 90%;
+        overflow:auto;
+  }
+  table { border-collapse: collapse; }
+  td, th { vertical-align: top; }
+  dt { font-weight: bold; }
+  div.figure { padding: 0.5em; }
+  div.figure p { text-align: center; }
+  .linenr { font-size:smaller }
+  .code-highlighted {background-color:#ffff00;}
+  .org-info-js_info-navigation { border-style:none; }
+  #org-info-js_console-label { font-size:10px; font-weight:bold;
+                               white-space:nowrap; }
+  .org-info-js_search-highlight {background-color:#ffff00; color:#000000;
+                                 font-weight:bold; }
+  /*]]>*/-->
+</style>
+<script type="text/javascript">
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*/-->
+</script>
+</head><body>
+<h1 class="title">PocketDialKtl</h1>
+
+
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1 - Description </a></li>
+<li><a href="#sec-2">2 - How to use </a></li>
+<li><a href="#sec-3">3 - Methods </a></li>
+<li><a href="#sec-4">4 - Other options </a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-1" class="outline-2">
+<h2 id="sec-1">1 - Description </h2>
+<div id="text-1">
+
+<p>Use the <b>Doepfer Pocket Dial</b> midi controller with <b>JITLIB</b>.
+</p>
+<p>
+<b>IMPORTANT:</b>
+</p>
+<p>
+You need <b>JITMIDIKtl</b> quark to use <b>PocketDialKtl</b>.
+</p>
+
+</div>
+
+</div>
+
+<div id="outline-container-2" class="outline-2">
+<h2 id="sec-2">2 - How to use </h2>
+<div id="text-2">
+
+<p>First of all, you might need to replace the midiCC values in the class itself if you use different ones than the defaults:
+PocketDialKtl::makeDefaults
+</p>
+<p>
+I use midiCC 0, 1, &hellip; 15 for the bank 1, midiCC 16 &hellip; 31 for the bank 2 and so on until midiCC 63.
+</p>
+<p>
+<b>PocketDialKtl</b> is based on <b>PDKtl</b> (part of the quark <b>JITMIDIKtl</b>) but I use it differently (therefore this class).
+</p>
+<p>
+Right now, <b>PocketDialKtl</b> uses the endless mode only. I use the preset 00101010 on my Doepfer Pocket Dial.
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-3" class="outline-2">
+<h2 id="sec-3">3 - Methods </h2>
+<div id="text-3">
+
+<ul>
+<li>
+<h4> mapTo(node, bank=1, offset=1, params=nil, stepmin=0.02, stepmax=0.5)</h4>
+
+<p>
+<b>node</b> - a NodeProxy (like a <b>Ndef</b> or any proxy in <b>ProxySpace</b>)
+</p>
+<p>
+<b>bank</b> - the bank for midiCC (1 to 4)
+</p>
+<p>
+<b>offset</b> - the knob on which is assigned the 1st parameter (default: 1)
+</p>
+<p>
+<b>params</b> - an array of params to control (default: all)
+</p>
+<p>
+<b>stepmin</b> - the step used when a controller knob is turned slowly (default: 0.02)
+</p>
+<p>
+<b>stepmax</b> - the step used when a controller knob is turned fast (default: 0.5)
+</p>
+<p>
+maps a NodeProxy to some knobs automatically.
+</p>
+<p>
+Example:
+</p><pre class="example">
+s.boot;
+
+x = Ndef(\sin, { SinOsc.ar( \freq.kr(222), 0!2, \amp.kr(0.3) ) });
+x.play;
+
+d = PocketDialKtl.new
+d.mapTo(x, 1) // mapped on the first knobs (bank 1)
+</pre>
+
+<p>
+By default the volume of the NodeProxy is mapped on the knob 16 of the bank.
+</p>
+
+</li>
+<li>
+<h4> mapVolume(node, ccnr, bank)</h4>
+
+<p>
+<b>node</b> - a NodeProxy
+</p>
+<p>
+<b>ccnr</b> - the knob number (1 to 16)
+</p>
+<p>
+<b>bank</b> - the controller bank (1 to 4)
+</p>
+<pre class="example">
+y = Ndef(\shwoing, { LeakDC.ar(LFPar.ar(SinOsc.kr(\freq.kr(80) + (..1), [0,pi], 400)))}).play
+d.mapTo(y, 3, mapVol: false);
+d.mapVolume(x, 1, 4); // map volume on kn01, bank 4
+d.mapVolume(y, 2, 4); // map volume on kn02, bank 4
+</pre>
+
+
+
+</li>
+</ul>
+</div>
+
+</div>
+
+<div id="outline-container-4" class="outline-2">
+<h2 id="sec-4">4 - Other options </h2>
+<div id="text-4">
+
+<ul>
+<li>
+<b>specs</b> - all parameters must have specs to be controlled
+
+<pre class="example">
+(
+z = Ndef(\sinmod, { |fmod=12, mult=800, amp=0.3, dist=1|
+    var snd = SinOsc.ar(SinOsc.kr(fmod, [0,pi], mult), 0, amp);
+    (snd * dist).tanh * 0.3;
+});
+)
+z.play;
+
+d = d ?? PocketDialKtl.new;
+
+// specs
+(
+Spec.add(\fmod, [10, 1e4, \exp]);
+Spec.add(\mult, [400, 2000]);
+// 'amp' already has a default spec
+Spec.add(\dist, [1, 20]);
+);
+
+// map this one to the 2nd Bank, starting on the 9th knob:
+d.mapTo(z, 2, 9);
+</pre>
+
+<p>
+Try moving the 9 10 11 12 knobs on your bank2.
+</p>
+</li>
+<li>
+<b>params</b> - choose which params to control (default all)
+
+<pre class="example">
+d.mapTo(z, 2, 4, [\freq, \dist]) // maps freq and dist only
+</pre>
+
+</li>
+<li>
+<b>steps</b>
+
+<p>
+We can also fine tune the step used by the controller:
+</p>
+<pre class="example">
+d.mapTo(z, 2, 4, stepmin: 0.01, stepmax: 0.9);
+</pre>
+
+<p>
+This will produce very small changes when the knobs are tweaked gently, and more drastic changes when turned fast.
+</p>
+
+
+<hr/>
+
+
+
+</li>
+</ul>
+</div>
+</div>
+<div id="postamble"><p class="author"> Author: Yvan Volochine
+<a href="mailto:yvan.volochine@gmail.com">&lt;yvan.volochine@gmail.com&gt;</a>
+</p>
+<p class="date"> Date: 2010-11-06 03:36:26 CET</p>
+<p>HTML generated by org-mode 6.21b in emacs 23</p>
+</div></body>
+</html>
