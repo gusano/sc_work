@@ -48,19 +48,27 @@ PocketDialKtl : MIDIKtl {
 		resetDict.clear;
 	}
 
-	update { |proxy, bank, offset|
+	update { |proxy, bank=nil, offset=nil|
 		var pairs = proxy.getKeysValues;
 		var dict = proxyParamsDict[proxy] ?? ();
-		pairs.do{|p, i|
-			var cckey = orderedNames[bank-1 * 16 + offset + i - 1];
-			// remove old key if any
-			if (dict[p[0]].notNil, {
-				this.mapCC(dict[p[0]][\key], nil);
-				dict[p[0]][\key] = nil;
-			});
-			dict.add( p[0] -> (\key: cckey, \val: p[1]) );
-		};
-		proxyParamsDict[proxy] = dict;
+		if (bank.notNil, { /* 1st update */
+			pairs.do{|p, i|
+				var cckey = orderedNames[bank-1 * 16 + offset + i - 1];
+				// remove old key if any
+				if (dict[p[0]].notNil, {
+					this.mapCC(dict[p[0]][\key], nil);
+					dict[p[0]][\key] = nil;
+				});
+				dict.add( p[0] -> (\key: cckey, \val: p[1]) );
+			};
+			proxyParamsDict[proxy] = dict;
+		}, {
+			/* we just fetch the new values */
+			pairs.do{|p|
+				proxyParamsDict[proxy][p[0]][\val] = p[1]
+			}
+		});
+		//postf("DEBUG: updating %\, reset is true", proxy.cs);
 		resetDict[proxy] = true;
 	}
 
@@ -72,7 +80,7 @@ PocketDialKtl : MIDIKtl {
 		if (pparams.size > 16, {
 			warn("Too many params!\nMaximum is 16.")
 		}, {
-			if (proxyParamsDict[proxy].isNil or: { resetDict[proxy] == false }, {
+			if (proxyParamsDict[proxy].isNil or: { resetDict[proxy] != true }, {
 				this.update(proxy, bank, offset)
 			});
 			pparams.do{ |p, i|
@@ -96,6 +104,10 @@ PocketDialKtl : MIDIKtl {
 			var delta, currentVal, newVal;
 			delta = val - 64;
 			delta = delta * delta.abs.linlin(1, 7, stepmin, stepmax);
+			// update params ?
+			if (resetDict[proxy] != true, {
+				this.update(proxy)
+			});
 			currentVal = proxyParamsDict[proxy][param][\val];
 			currentVal = param.asSpec.unmap(currentVal);
 			newVal = param.asSpec.map(currentVal + (delta / 127));
@@ -104,7 +116,10 @@ PocketDialKtl : MIDIKtl {
 			proxyParamsDict[proxy][param][\val] = newVal;
 
 			if (inform, { postf("%: % -> %\n", proxy.asCompileString, param, newVal) });
-			{ resetDict.add(proxy -> false) }.defer(resetTime); // SHOULD I DO THIS ?
+			{ 
+				resetDict.add(proxy -> false);
+				//postf("DEBUG: updating %\, reset is FALSE", proxy.cs);
+			}.defer(resetTime); // SHOULD I DO THIS ?
 		};
 		^func;
 	}
