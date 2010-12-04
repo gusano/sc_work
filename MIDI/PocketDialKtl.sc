@@ -2,9 +2,12 @@
 	Notes:
 	- NEEDS JITMIDIKtl quark !
 	- suports only endless mode (preset 00101010)
-	- adapted from PDKtl.sc
 	History:
-	- 20101105: (yvan volochine)
+	- 20101204: 
+	  - better handling of params update (no more defer)
+	  - added ascii view of params (because NdefGui is broken with 
+Qt and I *don't* wanna go back to heavy-on-my-poor-cpu SwingOSC)
+	- 20101105:
 	  - fixed delta ccVal bug and added args to mapTo()
 	  - now remove unused (yvan volochine)
 	  - still could be *much better*
@@ -24,11 +27,11 @@ PocketDialKtl : MIDIKtl {
 	var <>softWithin = 0.05, <lastVals;	// for normal mode
 	var <>endless;
 
-	var <>resetTime = 0.5; /* mmmh */
-	
 	var <orderedNames;
-	var <proxyDict, <proxyParamsDict, <resetDict;
+	var <proxyDict, <proxyParamsDict, <resetDict, <orderedParamsDict;
 	var <>inform = true;
+	
+	var lastTime;
 	
 	*new { |srcID, ccDict, endless = true| 
 		^super.newCopyArgs(srcID, ccDict).endless_(endless).init;
@@ -39,6 +42,8 @@ PocketDialKtl : MIDIKtl {
 		orderedNames = defaults[this.class].keys.asArray.sort;
 		proxyParamsDict = ();
 		resetDict = ();
+		orderedParamsDict = ();
+		lastTime = Main.elapsedTime;
 	}
 
 	free { 
@@ -46,11 +51,16 @@ PocketDialKtl : MIDIKtl {
 		ccDict.clear;
 		proxyParamsDict.clear;
 		resetDict.clear;
+		orderedParamsDict.clear;
 	}
 
 	update { |proxy, bank=nil, offset=nil|
 		var pairs = proxy.getKeysValues;
 		var dict = proxyParamsDict[proxy] ?? ();
+
+		// store ordered params
+		orderedParamsDict.add(proxy -> pairs.flop[0]);
+
 		if (bank.notNil, { /* 1st update */
 			pairs.do{|p, i|
 				var cckey = orderedNames[bank-1 * 16 + offset + i - 1];
@@ -68,11 +78,10 @@ PocketDialKtl : MIDIKtl {
 				proxyParamsDict[proxy][p[0]][\val] = p[1]
 			}
 		});
-		//postf("DEBUG: updating %\, reset is true", proxy.cs);
 		resetDict[proxy] = true;
 	}
 
-	mapTo { |proxy, bank=1, offset=1, params=nil, stepmin=0.05, stepmax=0.2, mapVol=true|
+	mapTo { |proxy, bank=1, offset=1, params=nil, stepmin=0.05, stepmax=0.5, mapVol=true|
 		var pparams, pairs;
 		pairs = proxy.getKeysValues;
 		pparams = params ?? pairs.flop[0];
@@ -101,9 +110,16 @@ PocketDialKtl : MIDIKtl {
 
 	generateFunction { |proxy, param, stepmin, stepmax|
 		var func = { |val|
-			var delta, currentVal, newVal;
+			var delta, currentVal, newVal, time;
+			time = Main.elapsedTime;
 			delta = val - 64;
 			delta = delta * delta.abs.linlin(1, 7, stepmin, stepmax);
+
+			/* if no cc was moved for 1 second, update NodeProxy params in case they have been changed from the outside */
+			if (time - lastTime > 1, {
+				resetDict.add(proxy -> false);
+			});
+
 			// update params ?
 			if (resetDict[proxy] != true, {
 				this.update(proxy)
@@ -115,11 +131,12 @@ PocketDialKtl : MIDIKtl {
 			try { proxy.set(param, newVal) };
 			proxyParamsDict[proxy][param][\val] = newVal;
 
-			if (inform, { postf("%: % -> %\n", proxy.asCompileString, param, newVal) });
-			{ 
-				resetDict.add(proxy -> false);
-				//postf("DEBUG: updating %\, reset is FALSE", proxy.cs);
-			}.defer(resetTime); // SHOULD I DO THIS ?
+			/*if (inform, { 
+				postf("%: % -> %\n", proxy.asCompileString, param, newVal.round(1e-4))
+				});*/
+			if (inform, { this.asciiParams(proxy) });
+
+			lastTime = time;
 		};
 		^func;
 	}
@@ -133,9 +150,31 @@ PocketDialKtl : MIDIKtl {
 			volume = \amp.asSpec.unmap(proxy.vol);
 			volume = \amp.asSpec.map(volume + (delta / 127));
 			proxy.vol_(volume);
-			if (inform, { postf("% vol -> %\n", proxy.asCompileString, volume) });
+			if (inform, { postf("% vol -> %\n", proxy.asCompileString, volume.round(1e-4)) });
 		});
 	}
+
+	asciiParams { |proxy|
+		// returns keys-params in an ascii way (no gui)
+		("[ " ++ proxy.asCompileString ++ " ]\n").post;
+
+		orderedParamsDict[proxy].do{ |key|
+			var val = proxyParamsDict[proxy][key]['val'];
+			val = key.asSpec.unmap(val);
+			key = key.asString;
+			key = key ++ (" " ! (16 - (key.size+1)));
+			key = key.replace("[", "").replace("]", "").replace(", ", "");
+			val = (val * 20).round;
+			val = ("#"!val);
+			val = val ++ ("-"!(20 - (val.size-1)));
+			val = val.asString.replace(" ", "").replace(",", "").replace("]", "").replace("[", "");
+			(key ++ "[" ++ val ++ "]" ++ "\n").post;
+			"";
+		};
+		"\n\n\n\n".post;
+		"";
+	}
+
 
 	*makeDefaults { 
 		/*	all midi chan 1, 
