@@ -94,7 +94,6 @@ PocketDialKtl : MIDIKtl {
 			pparams.do{ |p, i|
 				var cc = orderedNames[bank-1 * 16 + offset + i - 1];
 				var knob = offset + i;
-				var func;
 				if (p.asSpec.isNil, {
 					warn("% doesn't have a Spec !\n% not mapped.\n".format(p, p))
 				}, {
