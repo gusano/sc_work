@@ -44,13 +44,15 @@ s.waitForBoot{
 		'pan'       : [-1, 1]
 	);
 
-	w = Window.new("Glisson synthesis", Rect(100, 100, 410, 300)).front;
-	w.addFlowLayout; w.background_(Color.new(0.95, 0.96, 0.23));
-	w.onClose_{ t.stop; t.reset; };
+	w = Window.new("Glisson synthesis", Rect(100, 100, 410, 150))
+		.background_(Color.new(0.95, 0.96, 0.23))
+		.onClose_{ t.stop; t.reset; }
+		.front;
+	w.addFlowLayout;
 
 	playButton = Button(w, 120@20)
-        .states_([
-		    ['start', Color.white, Color.new(0, 0.6, 0)], 
+		.states_([
+			['start', Color.white, Color.new(0, 0.6, 0)],
 			['stop', Color.white, Color.red]
 		]).action_{ |b|
 			if (b.value == 1, {
