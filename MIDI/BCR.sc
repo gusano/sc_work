@@ -46,7 +46,7 @@ BCR : MIDIKtl {
         this.checkDependencies();
         super.init();
         this.findMidiIn(srcName);
-        this.findMidiOut(destName)
+        this.findMidiOut(destName);
     }
 
     /**
@@ -102,15 +102,31 @@ BCR : MIDIKtl {
     }
 
     /**
+     *
+     */
+    makeResp {
+        this.removeResp();
+        resp = CCResponder({ |src, chan, ccn, ccval|
+            var lookie = this.makeCCKey(chan, ccn);
+            if (this.class.verbose, { ['cc', src, chan, ccn, ccval].postcs });
+            if (ktlDict[lookie].notNil) {
+                //ktlDict[lookie].valueAll(ccval);
+                ktlDict[lookie].value(ccn, ccval);
+            }
+        }, srcID);
+    }
+
+    /**
      * addAction
      * Add a function to a specific CC
      *
-     * @param Symbol   ctlKey '0_33'
+     * @param Symbol   ctlKey 'knE1'
      * @param Function action The function to be executed
      * @return void
      */
     addAction{ |ctlKey, action|
-        ktlDict.add( ctlKey -> action );
+        var newKey = defaults['BCR'][ctlKey];
+        ktlDict.add( newKey -> action );
     }
 
     /**
@@ -133,15 +149,13 @@ BCR : MIDIKtl {
      */
     mapToNodeParams { |node ... pairs|
         pairs.do { |pair|
-            var ctlName, paramName, specName;
-            #ctlName, paramName = pair;
-            this.checkParamSpec;
-            this.addAction(
-                ctlName,
-                { |ch, cc, midival|
-                    node.set(paramName, paramName.asSpec.map(midival / 127));
-                }
-            )
+            var ctl, param, spec, func;
+            #ctl, param = pair;
+            this.checkParamSpec(param);
+            func = { |ctl, val|
+                node.set(param, param.asSpec.map(val / 127));
+            };
+            this.addAction(ctl, func)
         };
         if (midiOut.notNil) {
             this.sendFromProxy(node, pairs);
@@ -163,29 +177,31 @@ BCR : MIDIKtl {
     autoMapNode { |node, id, offset = 'knE1', preset |
         var nodeValues = node.getKeysValues;
         var nodeParams = nodeValues.flop[0];
-        var ccKey      = (selector ++ id).asSymbol.postln;
+        var ccKey      = (selector ++ id).asSymbol;
         var ccSelector = this.getCCNumForKey(ccKey);
-        var offsetNr   = offset.asString.drop(3).asInteger;
         var offsetChar = offset.asString.drop(2).at(0).asString;
-        var ccNewNames = this.incrementCCNames(nodeParams.size, offsetNr, offsetChar);
-        var ctlKeyName = defaults[this][ccKey].postln;
+        var offsetNr   = offset.asString.drop(3).asInteger;
+        var ctlKeyName = defaults['BCR'][ccKey];
+        var ccNewNames = this.incrementCCNames(
+            nodeParams.size, offsetNr, offsetChar
+        );
         var pairs      = [ccNewNames, nodeParams].flop;
-        var func       = { |chan, num, val|
-            var theKey = defaults[this].findKeyForValue(("0_"++num).asSymbol); // presets
-            if (num == ccSelector and: { val > 0 }, {
+        var func;
+        func= { |num, val|
+            //var theKey;
+            //theKey= defaults['BCR'].findKeyForValue(("0_"++num).asSymbol); // presets
+            if (val > 0, {
                 pairs.do{ |pair| this.mapToNodeParams(node, pair) };
-                this.managePreset(theKey, node, pairs);
+                //this.managePreset(theKey, node, pairs);
             });
-            if ( num == ccSelector and: { val == 0 }, {
-                this.managePreset(nil);
-            })
+            //if (val == 0, { this.managePreset(nil) })
         };
         ktlDict.put(ctlKeyName, func);
         // FIXME: TODO
         //if ( preset.notNil, { presets.put(ccKey, preset) });
-        //this.assignVolume(node, ccId);
-        //this.assignToogle(node, ccId);
-        //this.assignReset(node, ccId, pairs, defaultparams);
+        //this.assignVolume(node, id);
+        //this.assignToogle(node, id);
+        //this.assignReset(node, id, pairs, nodeValues);
     }
 
     /**
@@ -204,7 +220,7 @@ BCR : MIDIKtl {
      * @return int
     */
     getCCNumForKey { |key|
-        ^defaults[this][key].asString.drop(2).asInteger;
+        ^defaults['BCR'][key].asString.drop(2).asInteger;
     }
 
     /**
@@ -290,6 +306,6 @@ BCR : MIDIKtl {
     }
 
     *makeDefaults {
-        defaults.put(this, BCR.getDefaults);
+        defaults.put('BCR', BCR.getDefaults);
     }
 }
