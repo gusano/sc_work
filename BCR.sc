@@ -28,29 +28,19 @@ BCR : MIDIKtl {
      * init
      * Prepare MIDI in/out.
      * If no name is given for the destination, we assume it's the same as
-     * the one given for source. If 'nil' is given, don't use MIDIOut.
+     * the one given for source.
      *
      * @param string srcName  Name pattern for MIDI source
      * @param string destName Name pattern for MIDI destination
      *
      * @return BCR
      */
-    init { |srcName, destName = ""|
+    init { |srcName, destName|
+        if (destName.notNil, { destName = srcName });
         this.checkDependency();
         super.init();
         this.findMidiIn(srcName);
-        if (destName == "", { destName = srcName });
-        if (destName.notNil, { this.findMidiOut(destName) });
-        // TODO rewrite this
-        /*
-        if( destID.notNil ) {
-            midiOut = MIDIOut(destID);
-            ktlNames.pairsDo{ |key|
-                var chanCtl = this.keyToChanCtl(key);
-                midiOut.control(chanCtl[0], chanCtl[1], 0)
-            }
-        }
-        */
+        this.findMidiOut(srcName)
     }
 
     checkDependency {
@@ -70,11 +60,14 @@ BCR : MIDIKtl {
      */
     findMidiIn { |srcName|
         MIDIClient.sources.do{ |x|
-            if (x.device.contains(srcName), {
-                srcID = x.uid;
-                ("BCR MIDI input:" + x.device).postln; "";
-            })
-        };
+            block { |break|
+                if (x.device.contains(srcName), {
+                    srcID = x.uid;
+                    ("BCR MIDIIn:" + x.device).postln; "";
+                    break.();
+                })
+            }
+        }
     }
 
     /**
@@ -87,7 +80,15 @@ BCR : MIDIKtl {
      * @return void
      */
     findMidiOut { |destName|
-        "'findMidiOut' is not yet implemented".postln;
+        block { |break|
+            MIDIClient.destinations.do{ |x|
+                if ( x.device.contains(destName), {
+                    destID = x.uid;
+                    ("BCR MIDIOut:" + x.device).postln; "";
+                    break.();
+                })
+            }
+        }
     }
 
     /**
