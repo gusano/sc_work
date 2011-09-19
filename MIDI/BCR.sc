@@ -16,6 +16,11 @@ BCR : MIDIKtl {
     classvar <>verbose = false;
 
     /**
+     * @var String selector The button used for toggling recall mode for a node
+     */
+    var <selector = "btB";
+
+    /**
      * *new
      *
      * @param string srcName  Name pattern for MIDI source
@@ -122,8 +127,125 @@ BCR : MIDIKtl {
     }
 
     /**
+     * mapToNodeParams
+     *
+     * @return void
+     */
+    mapToNodeParams { |node ... pairs|
+        pairs.do { |pair|
+            var ctlName, paramName, specName;
+            #ctlName, paramName = pair;
+            this.checkParamSpec;
+            this.addAction(
+                ctlName,
+                { |ch, cc, midival|
+                    node.set(paramName, paramName.asSpec.map(midival / 127));
+                }
+            )
+        };
+        if (midiOut.notNil) {
+            this.sendFromProxy(node, pairs);
+        };
+    }
+
+    /**
+     * autoMapNode
+     * Declare a function that will recursively assign all node params to CCs
+     * and which will be toggled by a given ccSelector.
+     *
+     * @param mixed  node The node being controlled (SynthDef, NodeProxy, ...)
+     * @param int    id   The "column" which controls the node (1 to 32) (8 x 4 groups)
+     * @param Symbol offset
+     * @param Preset preset TODO
+     * @return void
+     * @TODO   refactor
+     */
+    autoMapNode { |node, id, offset = 'knE1', preset |
+        var nodeValues = node.getKeysValues;
+        var nodeParams = nodeValues.flop[0];
+        var ccKey      = (selector ++ id).asSymbol.postln;
+        var ccSelector = this.getCCNumForKey(ccKey);
+        var offsetNr   = offset.asString.drop(3).asInteger;
+        var offsetChar = offset.asString.drop(2).at(0).asString;
+        var ccNewNames = this.incrementCCNames(nodeParams.size, offsetNr, offsetChar);
+        var ctlKeyName = defaults[this][ccKey].postln;
+        var pairs      = [ccNewNames, nodeParams].flop;
+        var func       = { |chan, num, val|
+            var theKey = defaults[this].findKeyForValue(("0_"++num).asSymbol); // presets
+            if (num == ccSelector and: { val > 0 }, {
+                pairs.do{ |pair| this.mapToNodeParams(node, pair) };
+                this.managePreset(theKey, node, pairs);
+            });
+            if ( num == ccSelector and: { val == 0 }, {
+                this.managePreset(nil);
+            })
+        };
+        ktlDict.put(ctlKeyName, func);
+        // FIXME: TODO
+        //if ( preset.notNil, { presets.put(ccKey, preset) });
+        //this.assignVolume(node, ccId);
+        //this.assignToogle(node, ccId);
+        //this.assignReset(node, ccId, pairs, defaultparams);
+    }
+
+    /**
+     * managePreset
+     *
+     * @return
+     */
+    managePreset { |key, node, pairs|
+        "'managePreset' is not yet imlemented".warn
+    }
+
+    /**
+     * getCCNumForKey
+     *
+     * @param symbol key
+     * @return int
+    */
+    getCCNumForKey { |key|
+        ^defaults[this][key].asString.drop(2).asInteger;
+    }
+
+    /**
+     * checkParamSpec
+     * Check if the param has a valid ControlSpec.
+     * If not, assign a default one to it [0, 127]
+     *
+     * @param Symbol param
+     * @return void
+     */
+    checkParamSpec { |param|
+        if (param.asSpec.isNil, {
+            Spec.add(param, [0, 127]);
+            ("BCR:\ndefault Spec for" + param).warn;
+        })
+    }
+
+    /**
+     * incrementCCNames
+     * Increment ccKeys and automatically change lettre when needed:
+     * ex: \knB6, \knB7, \knB8, \knC1, ...
+     *
+     * @param int size Number of times to increment
+     * @param int offsetNr
+     * @param int offsetChar
+     * @return Array
+     */
+    incrementCCNames { | size, offsetNr, offsetChar |
+        ^size.collect { | i |
+            var newKey, currentId;
+            currentId = (offsetNr - 1 + i % 8) + 1;
+            if (currentId == 1 and: { i > 0 }, {
+                offsetChar = (offsetChar.ascii[0] + 1).asAscii
+            });
+            newKey = ("kn" ++ offsetChar.asString ++ currentId.asString).asSymbol
+        }
+    }
+
+    /**
      * *getDefaults
-     * Stores the CC numbers in a Dictionary for later use.
+     * Stores the CC numbers in 'defaults' Dictionary.
      *
      * @return Dictionary
      */
@@ -168,6 +290,6 @@ BCR : MIDIKtl {
     }
 
     *makeDefaults {
-        defaults.put(this, this.getDefaults);
+        defaults.put(this, BCR.getDefaults);
     }
 }
