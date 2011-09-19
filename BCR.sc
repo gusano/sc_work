@@ -13,7 +13,85 @@ BCR : MIDIKtl {
     classvar <>verbose = false;
 
     /**
-     * getDefaults
+     * *new
+     *
+     * @param string srcName  Name pattern for MIDI source
+     * @param string destName Name pattern for MIDI destination
+     *
+     * @return BCR
+     */
+    *new { |srcName, destName|
+        ^super.new.init(srcName, destName);
+    }
+
+    /**
+     * init
+     * Prepare MIDI in/out.
+     * If no name is given for the destination, we assume it's the same as
+     * the one given for source. If 'nil' is given, don't use MIDIOut.
+     *
+     * @param string srcName  Name pattern for MIDI source
+     * @param string destName Name pattern for MIDI destination
+     *
+     * @return BCR
+     */
+    init { |srcName, destName = ""|
+        this.checkDependency();
+        super.init();
+        this.findMidiIn(srcName);
+        if (destName == "", { destName = srcName });
+        if (destName.notNil, { this.findMidiOut(destName) });
+        // TODO rewrite this
+        /*
+        if( destID.notNil ) {
+            midiOut = MIDIOut(destID);
+            ktlNames.pairsDo{ |key|
+                var chanCtl = this.keyToChanCtl(key);
+                midiOut.control(chanCtl[0], chanCtl[1], 0)
+            }
+        }
+        */
+    }
+
+    checkDependency {
+        if ('Ktl'.asClass.isNil, {
+            Error("Required 'Ktl' quark was not found.").throw
+        })
+    }
+
+    /**
+     * findMidiIn
+     * Finds the MIDIIn device via name pattern. If several sources contains
+     * this name, only the first one is used.
+     *
+     * @param string srcName  Name pattern for MIDI source
+     *
+     * @return void
+     */
+    findMidiIn { |srcName|
+        MIDIClient.sources.do{ |x|
+            if (x.device.contains(srcName), {
+                srcID = x.uid;
+                ("BCR MIDI input:" + x.device).postln; "";
+            })
+        };
+    }
+
+    /**
+     * findMidiOut
+     * Finds the MIDIOut device via name pattern. If several sources contains
+     * this name, only the first one is used.
+     *
+     * @param string destName  Name pattern for MIDI destination
+     *
+     * @return void
+     */
+    findMidiOut { |destName|
+        "'findMidiOut' is not yet implemented".postln;
+    }
+
+    /**
+     * *getDefaults
      *
      * @return Dictionary
      */
