@@ -16,6 +16,16 @@ BCR : MIDIKtl {
     classvar <>verbose = false;
 
     /**
+     * @var Dictionary ccStoreDict Store all moved CCs
+     */
+    var <ccStoreDict;
+
+    /**
+     * @var Dictionary toogleDict Store toogle buttons
+     */
+    var <toogleDict;
+
+    /**
      * @var String selector The button used for toggling recall mode for a node
      */
     var <selector = "btB";
@@ -47,6 +57,8 @@ BCR : MIDIKtl {
         super.init();
         this.findMidiIn(srcName);
         this.findMidiOut(destName);
+        ccStoreDict = ccStoreDict ?? ();
+        toogleDict = toogleDict ?? ();
     }
 
     /**
@@ -112,6 +124,7 @@ BCR : MIDIKtl {
             if (ktlDict[lookie].notNil) {
                 //ktlDict[lookie].valueAll(ccval);
                 ktlDict[lookie].value(ccn, ccval);
+                ccStoreDict.put(ccn, val);
             }
         }, srcID);
     }
@@ -153,7 +166,9 @@ BCR : MIDIKtl {
             #ctl, param = pair;
             this.checkParamSpec(param);
             func = { |ctl, val|
-                node.set(param, param.asSpec.map(val / 127));
+                if (ccStoreDict[toogleDict[node]] > 0, {
+                    node.set(param, param.asSpec.map(val / 127));
+                });
             };
             this.addAction(ctl, func)
         };
@@ -197,6 +212,7 @@ BCR : MIDIKtl {
             //if (val == 0, { this.managePreset(nil) })
         };
         ktlDict.put(ctlKeyName, func);
+        toogleDict.put(node, ccSelector);
         // FIXME: TODO
         //if ( preset.notNil, { presets.put(ccKey, preset) });
         //this.assignVolume(node, id);
