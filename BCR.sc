@@ -69,7 +69,7 @@ BCR : MIDIKtl {
             block { |break|
                 if (x.device.containsi(srcName), {
                     srcID = x.uid;
-                    ("BCR MIDIIn:" + x.device).postln; "";
+                    ("\n\nBCR MIDIIn:" + x.device).postln; "";
                     break.();
                 })
             }
