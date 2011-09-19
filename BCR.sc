@@ -17,7 +17,6 @@ BCR : MIDIKtl {
      *
      * @param string srcName  Name pattern for MIDI source
      * @param string destName Name pattern for MIDI destination
-     *
      * @return BCR
      */
     *new { |srcName, destName|
@@ -32,7 +31,6 @@ BCR : MIDIKtl {
      *
      * @param string srcName  Name pattern for MIDI source
      * @param string destName Name pattern for MIDI destination
-     *
      * @return BCR
      */
     init { |srcName, destName|
@@ -61,7 +59,6 @@ BCR : MIDIKtl {
      * this name, only the first one is used.
      *
      * @param string srcName  Name pattern for MIDI source
-     *
      * @return void
      */
     findMidiIn { |srcName|
@@ -82,7 +79,6 @@ BCR : MIDIKtl {
      * this name, only the first one is used.
      *
      * @param string destName  Name pattern for MIDI destination
-     *
      * @return void
      */
     findMidiOut { |destName|
@@ -99,6 +95,7 @@ BCR : MIDIKtl {
 
     /**
      * *getDefaults
+     * Stores the CC numbers in a Dictionary for later use.
      *
      * @return Dictionary
      */
@@ -139,7 +136,6 @@ BCR : MIDIKtl {
                 prB2: '0_108'
             )
         );
-
         ^dict
     }
 
