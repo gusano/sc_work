@@ -34,7 +34,7 @@ BCR : MIDIKtl {
      * @return BCR
      */
     init { |srcName, destName|
-        if (destName.notNil, { destName = srcName });
+        if (destName.isNil, { destName = srcName });
         this.checkDependencies();
         super.init();
         this.findMidiIn(srcName);
