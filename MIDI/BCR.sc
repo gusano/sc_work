@@ -10,6 +10,9 @@
 
 BCR : MIDIKtl {
 
+    /**
+     * @var bool verbose
+     */
     classvar <>verbose = false;
 
     /**
@@ -26,8 +29,8 @@ BCR : MIDIKtl {
     /**
      * init
      * Prepare MIDI in/out.
-     * If no name is given for the destination, we assume it's the same as
-     * the one given for source.
+     * If no name is given for the destination, we assume it's
+     * the same as the one given for source.
      *
      * @param string srcName  Name pattern for MIDI source
      * @param string destName Name pattern for MIDI destination
@@ -55,8 +58,8 @@ BCR : MIDIKtl {
 
     /**
      * findMidiIn
-     * Finds the MIDIIn device via name pattern. If several sources contains
-     * this name, only the first one is used.
+     * Finds the MIDIIn device via name pattern. If several
+     * sources contain this name, only the first one is used.
      *
      * @param string srcName  Name pattern for MIDI source
      * @return void
@@ -75,8 +78,8 @@ BCR : MIDIKtl {
 
     /**
      * findMidiOut
-     * Finds the MIDIOut device via name pattern. If several sources contains
-     * this name, only the first one is used.
+     * Finds the MIDIOut device via name pattern. If several
+     * destinations contain this name, only the first one is used.
      *
      * @param string destName  Name pattern for MIDI destination
      * @return void
@@ -91,6 +94,31 @@ BCR : MIDIKtl {
                 })
             }
         }
+    }
+
+    /**
+     * addAction
+     * Add a function to a specific CC
+     *
+     * @param Symbol   ctlKey '0_33'
+     * @param Function action The function to be executed
+     * @return void
+     */
+    addAction{ |ctlKey, action|
+        ktlDict.add( ctlKey -> action );
+    }
+
+    /**
+     * removeAction
+     * Remove a function for a CC
+     *
+     * @param Symbol ctlKey '0_33'
+     * @return void
+     */
+    removeAction{ |ctlKey|
+        try
+        { ktlDict.removeAt( ctlKey ) }
+        { |e| (e.errorString).throw }
     }
 
     /**
