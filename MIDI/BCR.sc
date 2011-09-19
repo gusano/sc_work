@@ -64,7 +64,7 @@ BCR : MIDIKtl {
     findMidiIn { |srcName|
         MIDIClient.sources.do{ |x|
             block { |break|
-                if (x.device.contains(srcName), {
+                if (x.device.containsi(srcName), {
                     srcID = x.uid;
                     ("BCR MIDIIn:" + x.device).postln; "";
                     break.();
@@ -84,7 +84,7 @@ BCR : MIDIKtl {
     findMidiOut { |destName|
         block { |break|
             MIDIClient.destinations.do{ |x|
-                if ( x.device.contains(destName), {
+                if ( x.device.containsi(destName), {
                     destID = x.uid;
                     ("BCR MIDIOut:" + x.device).postln; "";
                     break.();
