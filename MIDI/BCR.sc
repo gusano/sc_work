@@ -114,7 +114,10 @@ BCR : MIDIKtl {
     }
 
     /**
+     * makeResp
+     * CCs look for possible actions to trigger
      *
+     * @return void
      */
     makeResp {
         this.removeResp();
