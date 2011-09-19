@@ -40,7 +40,7 @@ BCR : MIDIKtl {
         this.checkDependencies();
         super.init();
         this.findMidiIn(srcName);
-        this.findMidiOut(srcName)
+        this.findMidiOut(destName)
     }
 
     /**
