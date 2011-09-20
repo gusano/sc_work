@@ -296,7 +296,7 @@ BCR : MIDIKtl {
     }
 
     /**
-     * assignVolume on top knobs
+     * assignVolume to top knob
      *
      * @param mixed node The node to control
      * @param int   id   The "column" number
@@ -310,7 +310,7 @@ BCR : MIDIKtl {
     }
 
     /**
-     * assignToggle Play/stop on 1st row buttons
+     * assignToggle play/stop to 1st row button
      *
      * @param mixed node The node to control
      * @param int   id   The "column" number
@@ -328,7 +328,7 @@ BCR : MIDIKtl {
     }
 
     /**
-     * assignReset Reset node params with top knobs push-mode
+     * assignReset to top knob push-mode
      *
      * @param mixed node The node to control
      * @param int   id   The "column" number
