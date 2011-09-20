@@ -275,8 +275,8 @@ BCR : MIDIKtl {
                 // safer to use default NodeProxy params values than Spec ones
                 defaultparams.do { |def|
                     proxy.set(def[0], def[1]);
-                    this.sendFromProxy(proxy, pairs);
-                }
+                };
+                this.sendFromProxy(proxy, pairs);
             })
         })
     }
