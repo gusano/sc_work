@@ -125,9 +125,8 @@ BCR : MIDIKtl {
             var lookie = this.makeCCKey(chan, ccn);
             if (this.class.verbose, { ['cc', src, chan, ccn, ccval].postcs });
             if (ktlDict[lookie].notNil) {
-                //ktlDict[lookie].valueAll(ccval);
                 ktlDict[lookie].value(ccn, ccval);
-                ccStoreDict.put(ccn, val);
+                ccStoreDict.put(ccn, ccval);
             }
         }, srcID);
     }
@@ -203,9 +202,8 @@ BCR : MIDIKtl {
         var ccNewNames = this.incrementCCNames(
             nodeParams.size, offsetNr, offsetChar
         );
-        var pairs      = [ccNewNames, nodeParams].flop;
-        var func;
-        func= { |num, val|
+        var pairs = [ccNewNames, nodeParams].flop;
+        var func  = { |num, val|
             //var theKey;
             //theKey= defaults['BCR'].findKeyForValue(("0_"++num).asSymbol); // presets
             if (val > 0, {
@@ -216,11 +214,63 @@ BCR : MIDIKtl {
         };
         ktlDict.put(ctlKeyName, func);
         toogleDict.put(node, ccSelector);
+        this.assignVolume(node, id);
+        this.assignToggle(node, id);
+        this.assignReset(node, id, pairs, nodeValues);
         // FIXME: TODO
         //if ( preset.notNil, { presets.put(ccKey, preset) });
-        //this.assignVolume(node, id);
-        //this.assignToogle(node, id);
-        //this.assignReset(node, id, pairs, nodeValues);
+    }
+
+    /**
+     * assignVolume on top knobs
+     *
+     * @param mixed node The node to control
+     * @param int   id   The "column" number
+     * @return void
+     */
+    assignVolume { |proxy, id|
+        var volKnob = "kn%%".format(this.getGroupChar(id), id).asSymbol;
+        this.addAction(volKnob, { |cc, val|
+            proxy.vol_(\amp.asSpec.map(val / 127), 0.05)
+        })
+    }
+
+    /**
+     * assignToggle Play/stop on 1st row buttons
+     *
+     * @param mixed node The node to control
+     * @param int   id   The "column" number
+     * @return void
+     */
+    assignToggle { |proxy, id|
+        var tglButton = "bt%%".format(this.getGroupChar(id), id).asSymbol;
+        this.addAction(tglButton, { |cc, val|
+            if (val > 0 and: {proxy.monitor.isPlaying.not}, {
+                proxy.play
+            }, {
+                proxy.stop
+            })
+        })
+    }
+
+    /**
+     * assignReset Reset node params with top knobs push-mode
+     *
+     * @param mixed node The node to control
+     * @param int   id   The "column" number
+     * @return void
+     */
+    assignReset { |proxy, id, pairs, defaultparams|
+        var rstButton = "tr%%".format(this.getGroupChar(id), id).asSymbol;
+        this.addAction(rstButton, { |ch, cc, val|
+            if (val > 0, {
+                // safer to use default NodeProxy params values than Spec ones
+                defaultparams.do { |def|
+                    proxy.set(def[0], def[1]);
+                    this.sendFromProxy(proxy, pairs);
+                }
+            })
+        })
     }
 
     /**
@@ -240,6 +290,17 @@ BCR : MIDIKtl {
     */
     getCCNumForKey { |key|
         ^defaults['BCR'][key].asString.drop(2).asInteger;
+    }
+
+    /**
+     * getGroupChar For the 4 top encoder groups
+     *
+     * @param int id
+     * @return String
+     */
+    getGroupChar { |id|
+        var chars = ["A", "B", "C", "D"];
+        ^chars[((id - 1) / 8).asInt]
     }
 
     /**
