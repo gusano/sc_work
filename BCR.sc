@@ -239,7 +239,7 @@ BCR : MIDIKtl {
      * @return void
      * @TODO   refactor
      */
-    autoMapNode { |node, id, offset = 'knE1', preset |
+    autoMapNode { |node, id, offset = 'knE1', preset|
         var nodeValues = node.getKeysValues;
         var nodeParams = nodeValues.flop[0];
         var ccKey      = (selector ++ id).asSymbol;
@@ -267,6 +267,14 @@ BCR : MIDIKtl {
         this.assignReset(node, id, pairs, nodeValues);
         // FIXME: TODO
         //if ( preset.notNil, { presets.put(ccKey, preset) });
+    }
+
+    /**
+     * mapTo
+     * Shortcut for autoMapNode
+     */
+    mapTo { |node, id, offset, preset|
+        this.autoMapNode(node, id, offset, preset)
     }
 
     /**
