@@ -54,9 +54,9 @@ BCR : MIDIKtl {
     init { |srcName, destName|
         if (destName.isNil, { destName = srcName });
         this.checkDependencies();
-        super.init();
         this.findMidiIn(srcName);
         this.findMidiOut(destName);
+        super.init();
         ccStoreDict = ccStoreDict ?? ();
         toogleDict = toogleDict ?? ();
     }
@@ -103,9 +103,10 @@ BCR : MIDIKtl {
      */
     findMidiOut { |destName|
         block { |break|
-            MIDIClient.destinations.do{ |x|
+            MIDIClient.destinations.do{ |x, i|
                 if ( x.device.containsi(destName), {
-                    destID = x.uid;
+                    // For some reasons, destID is the index and not uid;
+                    destID = i;
                     ("BCR MIDIOut:" + x.device).postln; "";
                     break.();
                 })
@@ -160,6 +161,8 @@ BCR : MIDIKtl {
     /**
      * mapToNodeParams
      *
+     * @param mixed node
+     * @param array pairs The name|params of the node
      * @return void
      */
     mapToNodeParams { |node ... pairs|
@@ -174,17 +177,42 @@ BCR : MIDIKtl {
             };
             this.addAction(ctl, func)
         };
-        if (midiOut.notNil) {
+        if (destID.notNil) {
             this.sendFromProxy(node, pairs);
         };
     }
 
     /**
-     * sendFromProxy
-     * TODO
+     * sendFromProxy Update BCR with current node values
+     *
+     * @param mixed node
+     * @param array pairs The name|params of the node
+     * @return void
      */
-    sendFromProxy {
-        "sendFromProxy is not implemented yet".warn;
+    sendFromProxy { |node, pairs|
+        var ctlNames, params, currVals, midiVals;
+        if (destID.notNil, {
+            #ctlNames, params = pairs.flop;
+            currVals = node.getKeysValues(params).flop[1];
+            midiVals = currVals.collect { |val, i|
+                (params[i].asSpec.unmap(val) * 127).round.asInteger;
+            };
+            [ctlNames, midiVals].flop.do { |pair|
+                this.sendCtlValue(*pair);
+            }
+        })
+    }
+
+    /**
+     * sendCtlValue Send a CCval to MIDIOut
+     *
+     * @param Symbol ctlName
+     * @param int    val
+     * @return void
+     */
+    sendCtlValue { | ctlName, val |
+        var chanCtl = this.ccKeyToChanCtl(defaults['BCR'][ctlName]);
+        midiOut.control(chanCtl[0], chanCtl[1], val);
     }
 
     /**
