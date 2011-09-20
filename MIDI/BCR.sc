@@ -180,6 +180,14 @@ BCR : MIDIKtl {
     }
 
     /**
+     * sendFromProxy
+     * TODO
+     */
+    sendFromProxy {
+        "sendFromProxy is not implemented yet".warn;
+    }
+
+    /**
      * autoMapNode
      * Declare a function that will recursively assign all node params to CCs
      * and which will be toggled by a given ccSelector.
@@ -262,7 +270,7 @@ BCR : MIDIKtl {
      */
     assignReset { |proxy, id, pairs, defaultparams|
         var rstButton = "tr%%".format(this.getGroupChar(id), id).asSymbol;
-        this.addAction(rstButton, { |ch, cc, val|
+        this.addAction(rstButton, { |cc, val|
             if (val > 0, {
                 // safer to use default NodeProxy params values than Spec ones
                 defaultparams.do { |def|
