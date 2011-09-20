@@ -6,6 +6,8 @@
  * @version 0.1
  * @since   2011-09-19
  * @link    http://github.com/gusano/sc_work/tree/master/MIDI
+ *
+ * @todo presets,
  */
 
 BCR : MIDIKtl {
@@ -16,19 +18,20 @@ BCR : MIDIKtl {
     classvar <>verbose = false;
 
     /**
-     * @var Dictionary ccStoreDict Store all moved CCs
+     * @var Dictionary ccDict Store all moved CCs
      */
-    var <ccStoreDict;
+    var <ccDict;
 
     /**
-     * @var Dictionary toogleDict Store toogle buttons
+     * @var Dictionary tglDict Store toogle "learning" buttons
      */
-    var <toogleDict;
+    var <tglDict;
 
     /**
      * @var String selector The button used for toggling recall mode for a node
      */
     var <selector = "btB";
+
 
     /**
      * *new
@@ -57,8 +60,19 @@ BCR : MIDIKtl {
         this.findMidiIn(srcName);
         this.findMidiOut(destName);
         super.init();
-        ccStoreDict = ccStoreDict ?? ();
-        toogleDict = toogleDict ?? ();
+        ccDict  = ccDict ?? ();
+        tglDict = tglDict ?? ();
+    }
+
+    /**
+     * free
+     *
+     * @return void
+     */
+    free {
+        super.free();
+        ccDict.clear();
+        tglDict.clear();
     }
 
     /**
@@ -127,7 +141,7 @@ BCR : MIDIKtl {
             if (this.class.verbose, { ['cc', src, chan, ccn, ccval].postcs });
             if (ktlDict[lookie].notNil) {
                 ktlDict[lookie].value(ccn, ccval);
-                ccStoreDict.put(ccn, ccval);
+                ccDict.put(ccn, ccval);
             }
         }, srcID);
     }
@@ -154,7 +168,7 @@ BCR : MIDIKtl {
      */
     removeAction{ |ctlKey|
         try
-        { ktlDict.removeAt( ctlKey ) }
+        { ktlDict.removeAt(ctlKey) }
         { |e| (e.errorString).throw }
     }
 
@@ -171,7 +185,7 @@ BCR : MIDIKtl {
             #ctl, param = pair;
             this.checkParamSpec(param);
             func = { |ctl, val|
-                if (ccStoreDict[toogleDict[node]] > 0, {
+                if (ccDict[tglDict[node]] > 0, {
                     node.set(param, param.asSpec.map(val / 127));
                 });
             };
@@ -219,7 +233,7 @@ BCR : MIDIKtl {
      * and which will be toggled by a given ccSelector.
      *
      * @param mixed  node The node being controlled (SynthDef, NodeProxy, ...)
-     * @param int    id   The "column" which controls the node (1 to 32) (8 x 4 groups)
+     * @param int    id   The "column" which controls the node (8 x 4 groups)
      * @param Symbol offset
      * @param Preset preset TODO
      * @return void
@@ -247,12 +261,30 @@ BCR : MIDIKtl {
             //if (val == 0, { this.managePreset(nil) })
         };
         ktlDict.put(ctlKeyName, func);
-        toogleDict.put(node, ccSelector);
+        tglDict.put(node, ccSelector);
         this.assignVolume(node, id);
         this.assignToggle(node, id);
         this.assignReset(node, id, pairs, nodeValues);
         // FIXME: TODO
         //if ( preset.notNil, { presets.put(ccKey, preset) });
+    }
+
+    /**
+     * unmap
+     * Remove node and associated selector and function
+     *
+     * @param String node
+     * @return void
+     * @throws Warning if the selector is not found
+     */
+    unmap { |node|
+        var ctlKey = tglDict[node];
+        try {
+            tglDict.removeAt(node);
+            this.removeAction(ctlKey);
+        } { |e|
+            e.errorString.warn;
+        }
     }
 
     /**
@@ -305,6 +337,19 @@ BCR : MIDIKtl {
                 this.sendFromProxy(proxy, pairs);
             })
         })
+    }
+
+    /**
+     * mapped
+     * Utility method to get currently mapped nodes
+     *
+     * @return void
+     * @todo Use human readable infos
+     */
+    mapped {
+        tglDict.keys.do{ |key|
+            "% -> %".format(tglDict[key], key.cs).postln; "";
+        }
     }
 
     /**
@@ -374,6 +419,16 @@ BCR : MIDIKtl {
     }
 
     /**
+     * *makeDefaults
+     * Initialize BCR CC params
+     *
+     * @return void
+     */
+    *makeDefaults {
+        defaults.put('BCR', BCR.getDefaults);
+    }
+
+    /**
      * *getDefaults
      * Stores the CC numbers in 'defaults' Dictionary.
      *
@@ -419,7 +474,4 @@ BCR : MIDIKtl {
         ^dict
     }
 
-    *makeDefaults {
-        defaults.put('BCR', BCR.getDefaults);
-    }
 }
