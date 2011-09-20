@@ -177,9 +177,7 @@ BCR : MIDIKtl {
             };
             this.addAction(ctl, func)
         };
-        if (destID.notNil) {
-            this.sendFromProxy(node, pairs);
-        };
+        this.sendFromProxy(node, pairs);
     }
 
     /**
