@@ -28,7 +28,7 @@ BCR : MIDIKtl {
     var <nodeDict;
 
     /**
-     * @var String selector The button used for toggling recall mode for a node
+     * @var String selector Selector for the "learn" buttons
      */
     var <selector = "btB";
 
@@ -121,6 +121,7 @@ BCR : MIDIKtl {
                 if ( x.device.containsi(destName), {
                     // For some reasons, destID is the index and not uid;
                     destID = i;
+                    this.connectJack();
                     ("BCR MIDIOut: %\n".format(x.device)).post;
                     break.();
                 })
@@ -385,6 +386,20 @@ BCR : MIDIKtl {
         nodeDict.keys.do{ |key|
             "% -> %\n".format(nodeDict[key]['volume'], key.cs).post;
         }
+    }
+
+    /**
+     * connect SuperCollider MIDIOut to BCR MIDIIn (Linux only)
+     * @TODO private use so refactor and move this to an extension
+     */
+    connectJack {
+        var os = thisProcess.platform.name;
+        if (os == \linux, {
+            // TODO: ugly hardcoded values
+            "aconnect SuperCollider:5 BCR2000:0".unixCmd
+        }, {
+            "BCR::connectJack is not supported on %".format(os).warn
+        })
     }
 
     /**
