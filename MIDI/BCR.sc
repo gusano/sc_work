@@ -23,9 +23,9 @@ BCR : MIDIKtl {
     var <ccDict;
 
     /**
-     * @var Dictionary tglDict Store toogle "learning" buttons
+     * @var Dictionary Store volume, on-off and selector keys
      */
-    var <tglDict;
+    var <nodeDict;
 
     /**
      * @var String selector The button used for toggling recall mode for a node
@@ -60,8 +60,8 @@ BCR : MIDIKtl {
         this.findMidiIn(srcName);
         this.findMidiOut(destName);
         super.init();
-        ccDict  = ccDict ?? ();
-        tglDict = tglDict ?? ();
+        ccDict   = ccDict ?? ();
+        nodeDict = nodeDict ?? ();
     }
 
     /**
@@ -72,7 +72,7 @@ BCR : MIDIKtl {
     free {
         super.free();
         ccDict.clear();
-        tglDict.clear();
+        nodeDict.clear();
     }
 
     /**
@@ -145,7 +145,7 @@ BCR : MIDIKtl {
                 } { |e|
                     e.errorString.warn;
                 };
-                ccDict.put(ccn, ccval);
+                ccDict.put("%_%".format(chan, ccn).asSymbol, ccval);
             }
         }, srcID);
     }
@@ -167,13 +167,11 @@ BCR : MIDIKtl {
      * removeAction
      * Remove a function for a CC
      *
-     * @param Symbol ctlKey '0_33'
+     * @param Symbol key '0_33'
      * @return void
      */
-    removeAction{ |ctlKey|
-        try
-        { ktlDict.removeAt(ctlKey) }
-        { |e| (e.errorString).throw }
+    removeAction{ |key|
+        ktlDict.removeAt(key.asSymbol);
     }
 
     /**
@@ -190,7 +188,7 @@ BCR : MIDIKtl {
             this.checkParamSpec(param);
             func = { |ctl, val|
                 var mappedVal;
-                if (ccDict[tglDict[node]] > 0, {
+                if (ccDict[nodeDict[node]['rcl']] > 0, {
                     mappedVal = param.asSpec.map(val / 127);
                     node.set(param, mappedVal);
                     "%: % -> %\n".format(
@@ -269,8 +267,14 @@ BCR : MIDIKtl {
             });
             //if (val == 0, { this.managePreset(nil) })
         };
+        var newParams = ccNewNames.collect{ |key|
+            "0_%".format(this.getCCNumForKey(key)).asSymbol
+        };
         ktlDict.put(ctlKeyName, func);
-        tglDict.put(node, ccSelector);
+        // create nodeDict[node] and save params and recall
+        nodeDict.put(node, ());
+        nodeDict[node].add('params' -> newParams);
+        nodeDict[node].add('rcl' -> "0_%".format(ccSelector).asSymbol);
         this.assignVolume(node, id);
         this.assignToggle(node, id);
         this.assignReset(node, id, pairs, nodeValues);
@@ -288,17 +292,22 @@ BCR : MIDIKtl {
 
     /**
      * unmap
-     * Remove node and associated selector and function
+     * Remove node and associated volume, selector and function
      *
      * @param String node
      * @return void
      * @throws Warning if the selector is not found
      */
     unmap { |node|
-        var ctlKey = tglDict[node];
         try {
-            tglDict.removeAt(node);
-            this.removeAction(ctlKey);
+            nodeDict[node].keys.do{ |key|
+                if (key != 'params', {
+                    this.removeAction(nodeDict[node][key]);
+                }, {
+                    nodeDict[node]['params'].do(this.removeAction(_));
+                })
+            };
+            nodeDict.removeAt(node);
         } { |e|
             e.errorString.warn;
         }
@@ -311,11 +320,14 @@ BCR : MIDIKtl {
      * @param int   id   The "column" number
      * @return void
      */
-    assignVolume { |proxy, id|
+    assignVolume { |node, id|
         var volKnob = "kn%%".format(this.getGroupChar(id), id).asSymbol;
         this.addAction(volKnob, { |cc, val|
-            proxy.vol_(\amp.asSpec.map(val / 127), 0.05)
-        })
+            node.vol_(\amp.asSpec.map(val / 127), 0.05)
+        });
+        nodeDict[node].add(
+            'vol' -> "0_%".format(this.getCCNumForKey(volKnob)).asSymbol
+        );
     }
 
     /**
@@ -325,15 +337,18 @@ BCR : MIDIKtl {
      * @param int   id   The "column" number
      * @return void
      */
-    assignToggle { |proxy, id|
+    assignToggle { |node, id|
         var tglButton = "bt%%".format(this.getGroupChar(id), id).asSymbol;
         this.addAction(tglButton, { |cc, val|
-            if (val > 0 and: {proxy.monitor.isPlaying.not}, {
-                proxy.play
+            if (val > 0 and: {node.monitor.isPlaying.not}, {
+                node.play
             }, {
-                proxy.stop
+                node.stop
             })
-        })
+        });
+        nodeDict[node].add(
+            'tgl' -> "0_%".format(this.getCCNumForKey(tglButton)).asSymbol
+        );
     }
 
     /**
@@ -343,17 +358,20 @@ BCR : MIDIKtl {
      * @param int   id   The "column" number
      * @return void
      */
-    assignReset { |proxy, id, pairs, defaultparams|
+    assignReset { |node, id, pairs, defaultparams|
         var rstButton = "tr%%".format(this.getGroupChar(id), id).asSymbol;
         this.addAction(rstButton, { |cc, val|
             if (val > 0, {
                 // safer to use default NodeProxy params values than Spec ones
                 defaultparams.do { |def|
-                    proxy.set(def[0], def[1]);
+                    node.set(def[0], def[1]);
                 };
-                this.sendFromProxy(proxy, pairs);
+                this.sendFromProxy(node, pairs);
             })
-        })
+        });
+        nodeDict[node].add(
+            'rst' -> "0_%".format(this.getCCNumForKey(rstButton)).asSymbol
+        );
     }
 
     /**
@@ -364,8 +382,8 @@ BCR : MIDIKtl {
      * @todo Use human readable infos
      */
     mapped {
-        tglDict.keys.do{ |key|
-            "% -> %\n".format(tglDict[key], key.cs).post;
+        nodeDict.keys.do{ |key|
+            "% -> %\n".format(nodeDict[key]['vol'], key.cs).post;
         }
     }
 
