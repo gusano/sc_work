@@ -188,7 +188,7 @@ BCR : MIDIKtl {
             this.checkParamSpec(param);
             func = { |ctl, val|
                 var mappedVal;
-                if (ccDict[nodeDict[node]['rcl']] > 0, {
+                if (ccDict[nodeDict[node]['recall']] > 0, {
                     mappedVal = param.asSpec.map(val / 127);
                     node.set(param, mappedVal);
                     "%: % -> %\n".format(
@@ -274,7 +274,7 @@ BCR : MIDIKtl {
         // create nodeDict[node] and save params and recall
         nodeDict.put(node, ());
         nodeDict[node].add('params' -> newParams);
-        nodeDict[node].add('rcl' -> "0_%".format(ccSelector).asSymbol);
+        nodeDict[node].add('recall' -> "0_%".format(ccSelector).asSymbol);
         this.assignVolume(node, id);
         this.assignToggle(node, id);
         this.assignReset(node, id, pairs, nodeValues);
@@ -326,7 +326,7 @@ BCR : MIDIKtl {
             node.vol_(\amp.asSpec.map(val / 127), 0.05)
         });
         nodeDict[node].add(
-            'vol' -> "0_%".format(this.getCCNumForKey(volKnob)).asSymbol
+            'volume' -> "0_%".format(this.getCCNumForKey(volKnob)).asSymbol
         );
     }
 
@@ -347,7 +347,7 @@ BCR : MIDIKtl {
             })
         });
         nodeDict[node].add(
-            'tgl' -> "0_%".format(this.getCCNumForKey(tglButton)).asSymbol
+            'toggle' -> "0_%".format(this.getCCNumForKey(tglButton)).asSymbol
         );
     }
 
@@ -370,7 +370,7 @@ BCR : MIDIKtl {
             })
         });
         nodeDict[node].add(
-            'rst' -> "0_%".format(this.getCCNumForKey(rstButton)).asSymbol
+            'reset' -> "0_%".format(this.getCCNumForKey(rstButton)).asSymbol
         );
     }
 
@@ -383,7 +383,7 @@ BCR : MIDIKtl {
      */
     mapped {
         nodeDict.keys.do{ |key|
-            "% -> %\n".format(nodeDict[key]['vol'], key.cs).post;
+            "% -> %\n".format(nodeDict[key]['volume'], key.cs).post;
         }
     }
 
