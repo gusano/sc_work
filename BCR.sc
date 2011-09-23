@@ -38,7 +38,7 @@ BCR : MIDIKtl {
      *
      * @param string srcName  Name pattern for MIDI source
      * @param string destName Name pattern for MIDI destination
-     * @return BCR
+     * @return super
      */
     *new { |srcName="bcr", destName|
         ^super.new.init(srcName, destName);
@@ -52,7 +52,7 @@ BCR : MIDIKtl {
      *
      * @param string srcName  Name pattern for MIDI source
      * @param string destName Name pattern for MIDI destination
-     * @return BCR
+     * @return self
      */
     init { |srcName, destName|
         if (destName.isNil, { destName = srcName });
@@ -67,7 +67,7 @@ BCR : MIDIKtl {
     /**
      * free
      *
-     * @return void
+     * @return self
      */
     free {
         super.free();
@@ -78,7 +78,7 @@ BCR : MIDIKtl {
     /**
      * checkDependencies
      *
-     * @return void
+     * @return self
      * @throws Error if dependencies are not installed
      */
     checkDependencies {
@@ -93,7 +93,7 @@ BCR : MIDIKtl {
      * sources contain this name, only the first one is used.
      *
      * @param string srcName  Name pattern for MIDI source
-     * @return void
+     * @return self
      */
     findMidiIn { |srcName|
         MIDIClient.sources.do{ |x|
@@ -113,7 +113,7 @@ BCR : MIDIKtl {
      * destinations contain this name, only the first one is used.
      *
      * @param string destName  Name pattern for MIDI destination
-     * @return void
+     * @return self
      */
     findMidiOut { |destName|
         block { |break|
@@ -133,7 +133,7 @@ BCR : MIDIKtl {
      * makeResp
      * CCs look for possible actions to trigger
      *
-     * @return void
+     * @return self
      */
     makeResp {
         this.removeResp();
@@ -157,7 +157,7 @@ BCR : MIDIKtl {
      *
      * @param Symbol   ctlKey 'knE1'
      * @param Function action The function to be executed
-     * @return void
+     * @return self
      */
     addAction{ |ctlKey, action|
         var newKey = defaults['BCR'][ctlKey];
@@ -169,7 +169,7 @@ BCR : MIDIKtl {
      * Remove a function for a CC
      *
      * @param Symbol key '0_33'
-     * @return void
+     * @return self
      */
     removeAction{ |key|
         ktlDict.removeAt(key.asSymbol);
@@ -180,7 +180,7 @@ BCR : MIDIKtl {
      *
      * @param mixed node
      * @param array pairs The name|params of the node
-     * @return void
+     * @return self
      */
     mapToNodeParams { |node ... pairs|
         pairs.do { |pair|
@@ -207,7 +207,7 @@ BCR : MIDIKtl {
      *
      * @param mixed node
      * @param array pairs The name|params of the node
-     * @return void
+     * @return self
      */
     sendFromProxy { |node, pairs|
         var ctlNames, params, currVals, midiVals;
@@ -228,7 +228,7 @@ BCR : MIDIKtl {
      *
      * @param Symbol ctlName
      * @param int    val
-     * @return void
+     * @return self
      */
     sendCtlValue { | ctlName, val |
         var chanCtl = this.ccKeyToChanCtl(defaults['BCR'][ctlName]);
@@ -244,7 +244,7 @@ BCR : MIDIKtl {
      * @param int    id   The "column" which controls the node (8 x 4 groups)
      * @param Symbol offset
      * @param Preset preset TODO
-     * @return void
+     * @return self
      * @TODO   refactor
      */
     autoMapNode { |node, id, offset = 'knE1', preset|
@@ -296,7 +296,7 @@ BCR : MIDIKtl {
      * Remove node and associated volume, selector and function
      *
      * @param String node
-     * @return void
+     * @return self
      * @throws Warning if the selector is not found
      */
     unmap { |node|
@@ -319,7 +319,7 @@ BCR : MIDIKtl {
      *
      * @param mixed node The node to control
      * @param int   id   The "column" number
-     * @return void
+     * @return self
      */
     assignVolume { |node, id|
         var volKnob = "kn%%".format(this.getGroupChar(id), id).asSymbol;
@@ -336,7 +336,7 @@ BCR : MIDIKtl {
      *
      * @param mixed node The node to control
      * @param int   id   The "column" number
-     * @return void
+     * @return self
      */
     assignToggle { |node, id|
         var tglButton = "bt%%".format(this.getGroupChar(id), id).asSymbol;
@@ -357,7 +357,7 @@ BCR : MIDIKtl {
      *
      * @param mixed node The node to control
      * @param int   id   The "column" number
-     * @return void
+     * @return self
      */
     assignReset { |node, id, pairs, defaultparams|
         var rstButton = "tr%%".format(this.getGroupChar(id), id).asSymbol;
@@ -379,7 +379,7 @@ BCR : MIDIKtl {
      * mapped
      * Utility method to get currently mapped nodes
      *
-     * @return void
+     * @return self
      * @todo Use human readable infos
      */
     mapped {
@@ -438,7 +438,7 @@ BCR : MIDIKtl {
      * If not, assign a default one to it [0, 127]
      *
      * @param Symbol param
-     * @return void
+     * @return self
      */
     checkParamSpec { |param|
         if (param.asSpec.isNil, {
@@ -472,7 +472,7 @@ BCR : MIDIKtl {
      * *makeDefaults
      * Initialize BCR CC params
      *
-     * @return void
+     * @return self
      */
     *makeDefaults {
         defaults.put('BCR', BCR.getDefaults);
