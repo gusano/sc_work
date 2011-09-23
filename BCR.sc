@@ -40,7 +40,7 @@ BCR : MIDIKtl {
      * @param string destName Name pattern for MIDI destination
      * @return BCR
      */
-    *new { |srcName, destName|
+    *new { |srcName="bcr", destName|
         ^super.new.init(srcName, destName);
     }
 
@@ -54,7 +54,7 @@ BCR : MIDIKtl {
      * @param string destName Name pattern for MIDI destination
      * @return BCR
      */
-    init { |srcName="bcr", destName|
+    init { |srcName, destName|
         if (destName.isNil, { destName = srcName });
         this.checkDependencies();
         this.findMidiIn(srcName);
@@ -100,7 +100,7 @@ BCR : MIDIKtl {
             block { |break|
                 if (x.device.containsi(srcName), {
                     srcID = x.uid;
-                    ("\n\nBCR MIDIIn:" + x.device).postln; "";
+                    ("\n\nBCR MIDIIn: %\n".format(x.device)).post;
                     break.();
                 })
             }
@@ -121,7 +121,7 @@ BCR : MIDIKtl {
                 if ( x.device.containsi(destName), {
                     // For some reasons, destID is the index and not uid;
                     destID = i;
-                    ("BCR MIDIOut:" + x.device).postln; "";
+                    ("BCR MIDIOut: %\n".format(x.device)).post;
                     break.();
                 })
             }
@@ -156,7 +156,7 @@ BCR : MIDIKtl {
      */
     addAction{ |ctlKey, action|
         var newKey = defaults['BCR'][ctlKey];
-        ktlDict.add( newKey -> action );
+        ktlDict.add(newKey -> action);
     }
 
     /**
@@ -185,8 +185,13 @@ BCR : MIDIKtl {
             #ctl, param = pair;
             this.checkParamSpec(param);
             func = { |ctl, val|
+                var mappedVal;
                 if (ccDict[tglDict[node]] > 0, {
-                    node.set(param, param.asSpec.map(val / 127));
+                    mappedVal = param.asSpec.map(val / 127);
+                    node.set(param, mappedVal);
+                    "%: % -> %\n".format(
+                        node.cs, param, mappedVal.round(1e-3)
+                    ).post;
                 });
             };
             this.addAction(ctl, func)
@@ -356,7 +361,7 @@ BCR : MIDIKtl {
      */
     mapped {
         tglDict.keys.do{ |key|
-            "% -> %".format(tglDict[key], key.cs).postln; "";
+            "% -> %\n".format(tglDict[key], key.cs).post;
         }
     }
 
@@ -422,7 +427,7 @@ BCR : MIDIKtl {
             if (currentId == 1 and: { i > 0 }, {
                 offsetChar = (offsetChar.ascii[0] + 1).asAscii
             });
-            newKey = ("kn" ++ offsetChar.asString ++ currentId.asString).asSymbol
+            newKey = "kn%%".format(offsetChar.asString, currentId.asString).asSymbol
         }
     }
 
@@ -444,18 +449,19 @@ BCR : MIDIKtl {
      */
     *getDefaults {
         var dict = Dictionary.new;
+        var groups = ["A", "B", "C", "D"];
 
         8.do{ |i|
             //4 encoder groups
             4.do{ |j|
                 // top knob push mode
                 dict.put(
-                    ( "tr" ++ ["A", "B", "C", "D"][j] ++ (i + 1)).asSymbol,
+                    ( "tr" ++ groups[j] ++ (i + 1)).asSymbol,
                     ("0_" ++ (57 + (8 * j) + i)).asSymbol
                 );
                 // knobs (top row)
                 dict.put(
-                    ( "kn" ++ ["A", "B", "C", "D"][j] ++ (i + 1)).asSymbol,
+                    ( "kn" ++ groups[j] ++ (i + 1)).asSymbol,
                     ("0_" ++ (1 + (8 * j) + i)).asSymbol
                 );
             };
