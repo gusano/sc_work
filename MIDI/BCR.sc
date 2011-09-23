@@ -380,11 +380,11 @@ BCR : MIDIKtl {
      * Utility method to get currently mapped nodes
      *
      * @return self
-     * @todo Use human readable infos
      */
     mapped {
         nodeDict.keys.do{ |key|
-            "% -> %\n".format(nodeDict[key]['volume'], key.cs).post;
+            var nr = nodeDict[key]['volume'].asString.split($_).at(1);
+            "% -> %\n".format(nr, key.cs).post;
         }
     }
 
