@@ -54,7 +54,7 @@ BCR : MIDIKtl {
      * @param string destName Name pattern for MIDI destination
      * @return BCR
      */
-    init { |srcName, destName|
+    init { |srcName="bcr", destName|
         if (destName.isNil, { destName = srcName });
         this.checkDependencies();
         this.findMidiIn(srcName);
@@ -273,7 +273,7 @@ BCR : MIDIKtl {
      * mapTo
      * Shortcut for autoMapNode
      */
-    mapTo { |node, id, offset, preset|
+    mapTo { |node, id, offset = 'knE1', preset|
         this.autoMapNode(node, id, offset, preset)
     }
 
