@@ -140,7 +140,11 @@ BCR : MIDIKtl {
             var lookie = this.makeCCKey(chan, ccn);
             if (this.class.verbose, { ['cc', src, chan, ccn, ccval].postcs });
             if (ktlDict[lookie].notNil) {
-                ktlDict[lookie].value(ccn, ccval);
+                try {
+                    ktlDict[lookie].value(ccn, ccval);
+                } { |e|
+                    e.errorString.warn;
+                };
                 ccDict.put(ccn, ccval);
             }
         }, srcID);
