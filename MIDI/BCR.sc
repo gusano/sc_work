@@ -266,36 +266,44 @@ BCR : MIDIKtl {
      * Declare a function that will recursively assign all node params to CCs
      * and which will be toggled by a given ccSelector.
      *
-     * @param mixed  node The node being controlled (SynthDef, NodeProxy, ...)
-     * @param int    id   The "column" which controls the node (8 x 4 groups)
+     * @param mixed  node   The node being controlled (SynthDef, NodeProxy, ...)
+     * @param int    id     The "column" which controls the node (8 x 4 groups)
      * @param Symbol offset
      * @param Preset preset TODO
      * @return self
+     * @throws Error if the mapping id is invalid
      * @TODO   refactor
      */
     mapTo { |aNode, id, offset = 'knE1', preset|
-        var node       = this.getNodeType(aNode);
-        var nodeValues = this.getParamsValues(node);
-        var nodeParams = nodeValues.flop[0];
-        var ccKey      = (selector ++ id).asSymbol;
-        var ccSelector = this.getCCNumForKey(ccKey);
-        var offsetChar = offset.asString.drop(2).at(0).asString;
-        var offsetNr   = offset.asString.drop(3).asInteger;
-        var ctlKeyName = defaults['BCR'][ccKey];
-        var ccNewNames = this.incrementCCNames(
+        var node, nodeValues, nodeParams, ccKey, ccSelector, offsetChar,
+            offsetNr, ctlKeyName, ccNewNames, pairs, func, newParams;
+
+        if (id > 8, {
+            Error("BCR: cannot map more than 8 nodes.").throw
+        });
+        node       = this.getNodeType(aNode);
+        nodeValues = this.getParamsValues(node);
+        nodeParams = nodeValues.flop[0];
+        ccKey      = (selector ++ id).asSymbol;
+        ccSelector = this.getCCNumForKey(ccKey);
+        offsetChar = offset.asString.drop(2).at(0).asString;
+        offsetNr   = offset.asString.drop(3).asInteger;
+        ctlKeyName = defaults['BCR'][ccKey];
+        ccNewNames = this.incrementCCNames(
             nodeParams.size, offsetNr, offsetChar
         );
-        var pairs = [ccNewNames, nodeParams].flop;
-        var func  = { |num, val|
+        pairs = [ccNewNames, nodeParams].flop;
+        func  = { |num, val|
+            // TODO presets
             //var theKey;
-            //theKey= defaults['BCR'].findKeyForValue(("0_"++num).asSymbol); // presets
+            //theKey= defaults['BCR'].findKeyForValue(("0_"++num).asSymbol);
             if (val > 0, {
                 pairs.do{ |pair| this.mapToNodeParams(node, pair) };
                 //this.managePreset(theKey, node, pairs);
             });
             //if (val == 0, { this.managePreset(nil) })
         };
-        var newParams = ccNewNames.collect{ |key|
+        newParams = ccNewNames.collect{ |key|
             "0_%".format(this.getCCNumForKey(key)).asSymbol
         };
         //if (offsetChar.ascii > 69, {
