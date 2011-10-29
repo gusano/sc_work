@@ -28,7 +28,7 @@ BCR : MIDIKtl {
     var <nodeDict;
 
     /**
-     * @var Int destID Index of MIDIOut device used
+     * @var Integer destID Index of MIDIOut device used
      */
     var <destID;
 
@@ -46,8 +46,8 @@ BCR : MIDIKtl {
     /**
      * *new
      *
-     * @param string srcName  Name pattern for MIDI source
-     * @param string destName Name pattern for MIDI destination
+     * @param String srcName  Name pattern for MIDI source
+     * @param String destName Name pattern for MIDI destination
      * @return super
      */
     *new { |srcName="bcr", destName|
@@ -60,8 +60,8 @@ BCR : MIDIKtl {
      * If no name is given for the destination, we assume it's
      * the same as the one given for source.
      *
-     * @param string srcName  Name pattern for MIDI source
-     * @param string destName Name pattern for MIDI destination
+     * @param String srcName  Name pattern for MIDI source
+     * @param String destName Name pattern for MIDI destination
      * @return self
      */
     init { |srcName, destName|
@@ -102,7 +102,7 @@ BCR : MIDIKtl {
      * Finds the MIDIIn device via name pattern. If several
      * sources contain this name, only the first one is used.
      *
-     * @param string srcName  Name pattern for MIDI source
+     * @param String srcName Name pattern for MIDI source
      * @return self
      */
     findMidiIn { |srcName|
@@ -122,7 +122,7 @@ BCR : MIDIKtl {
      * Finds the MIDIOut device via name pattern. If several
      * destinations contain this name, only the first one is used.
      *
-     * @param string destName  Name pattern for MIDI destination
+     * @param String destName  Name pattern for MIDI destination
      * @return self
      */
     findMidiOut { |destName|
@@ -140,8 +140,7 @@ BCR : MIDIKtl {
     }
 
     /**
-     * makeResp
-     * CCs look for possible actions to trigger
+     * makeResp Main CCResponder lookup for actions to trigger
      *
      * @return self
      */
@@ -162,8 +161,7 @@ BCR : MIDIKtl {
     }
 
     /**
-     * addAction
-     * Add a function to a specific CC
+     * addAction Add a function to a specific CC
      *
      * @param Symbol   ctlKey 'knE1'
      * @param Function action The function to be executed
@@ -175,8 +173,7 @@ BCR : MIDIKtl {
     }
 
     /**
-     * removeAction
-     * Remove a function for a CC
+     * removeAction Remove a function for a CC
      *
      * @param Symbol key '0_33'
      * @return self
@@ -189,7 +186,7 @@ BCR : MIDIKtl {
      * mapToNodeParams
      *
      * @param mixed node
-     * @param array pairs The name|params of the node
+     * @param Array pairs The name|params of the node
      * @return self
      */
     mapToNodeParams { |node ... pairs|
@@ -216,7 +213,7 @@ BCR : MIDIKtl {
      * sendFromProxy Update BCR with current node values
      *
      * @param mixed node
-     * @param array pairs The name|params of the node
+     * @param Array pairs The name|params of the node
      * @return self
      */
     sendFromProxy { |node, pairs|
@@ -236,11 +233,11 @@ BCR : MIDIKtl {
     /**
      * sendCtlValue Send a CCval to MIDIOut
      *
-     * @param Symbol ctlName
-     * @param int    val
+     * @param Symbol  ctlName
+     * @param Integer val
      * @return self
      */
-    sendCtlValue { | ctlName, val |
+    sendCtlValue { |ctlName, val|
         var chanCtl = this.ccKeyToChanCtl(defaults['BCR'][ctlName]);
         midiOut.control(chanCtl[0], chanCtl[1], val);
     }
@@ -250,15 +247,14 @@ BCR : MIDIKtl {
      * Find out if the Node is a Synth or a NodeProxy.
      * We assume that user passes a String or Symbol in case of a Synth
      *
-     * @param mixed aNode
+     * @param mixed node
      * @return mixed
      */
-    getNodeType { | aNode |
-        if (aNode.isKindOf(NodeProxy), {
-            ^aNode
-        }, {
-            ^Synth.basicNew(aNode)
-        })
+    getNodeType { |node|
+        if (node.isKindOf(NodeProxy),
+            { ^node },
+            { ^Synth.basicNew(node) }
+        )
     }
 
     /**
@@ -266,10 +262,10 @@ BCR : MIDIKtl {
      * Declare a function that will recursively assign all node params to CCs
      * and which will be toggled by a given ccSelector.
      *
-     * @param mixed  node   The node being controlled (SynthDef, NodeProxy, ...)
-     * @param int    id     The "column" which controls the node (8 x 4 groups)
-     * @param Symbol offset
-     * @param Preset preset TODO
+     * @param mixed   node   The node being controlled (SynthDef, NodeProxy, ...)
+     * @param Integer id     The "column" which controls the node (8 x 4 groups)
+     * @param Symbol  offset
+     * @param Preset  preset TODO
      * @return self
      * @throws BCRError if the mapping id is invalid
      * @TODO   refactor
@@ -322,17 +318,14 @@ BCR : MIDIKtl {
     }
 
     /**
-     * unmap
-     * Remove node and associated volume, selector and function
+     * unmap Remove node and associated volume, selector and function
      *
      * @param String node
      * @return self
      * @throws Warning if the selector is not found
      */
     unmap { |node|
-        if (node.isNil, {
-            nodeDict.clear
-        });
+        if (node.isNil, { nodeDict.clear });
         try {
             nodeDict[node].keys.do{ |key|
                 if (key != 'params', {
@@ -348,22 +341,19 @@ BCR : MIDIKtl {
     }
 
     /**
-     * unmapAll
-     * Unmap all nodes currently assigned
+     * unmapAll Unmap all nodes currently assigned
      *
      * @return self
      */
     unmapAll {
-        nodeDict.keys.do{ |key|
-            this.unmap(key)
-        }
+        this.unmap
     }
 
     /**
-     * assignVolume to top knob
+     * assignVolume Assign node volume to top knob
      *
-     * @param mixed node The node to control
-     * @param int   id   The "column" number
+     * @param mixed   node The node to control
+     * @param Integer id   The "column" number
      * @return self
      */
     assignVolume { |node, id|
@@ -383,10 +373,10 @@ BCR : MIDIKtl {
     }
 
     /**
-     * assignToggle play/stop to 1st row button
+     * assignToggle Assign play/stop to 1st row button
      *
-     * @param mixed node The node to control
-     * @param int   id   The "column" number
+     * @param mixed   node The node to control
+     * @param Integer id   The "column" number
      * @return self
      */
     assignToggle { |node, id|
@@ -394,11 +384,10 @@ BCR : MIDIKtl {
         var func;
         if (node.isKindOf(NodeProxy), {
             func = { |cc, val|
-            if (val > 0 and: {node.monitor.isPlaying.not}, {
-                node.play
-            }, {
-                node.stop
-            }) }
+            if (val > 0 and: {node.monitor.isPlaying.not},
+                { node.play },
+                { node.stop }
+            )}
         }, {
             func = { "not implemented".postln };
             //s.sendBundle(s.latency, ["/s_new", "test", s.nextNodeID, 0, 1])
@@ -410,10 +399,10 @@ BCR : MIDIKtl {
     }
 
     /**
-     * assignReset to top knob push-mode
+     * assignReset Assign reset to top knob push-mode
      *
-     * @param mixed node The node to control
-     * @param int   id   The "column" number
+     * @param mixed   node The node to control
+     * @param Integer id   The "column" number
      * @return self
      */
     assignReset { |node, id, pairs, defaultparams|
@@ -442,19 +431,20 @@ BCR : MIDIKtl {
     /**
      * getParamsValues
      *
+     * @param mixed node
      * @return Array
      */
     getParamsValues { |node|
-        if (node.isKindOf(NodeProxy), {
-            ^node.getKeysValues
-        }, {
-            ^this.getSynthKeysValues(node)
-        })
+        if (node.isKindOf(NodeProxy),
+            { ^node.getKeysValues },
+            { ^this.getSynthKeysValues(node) }
+        )
     }
 
     /**
      * getSynthKeysValues
      *
+     * @paran mixed node
      * @return Array
      */
     getSynthKeysValues { |node|
@@ -467,8 +457,7 @@ BCR : MIDIKtl {
     }
 
     /**
-     * mapped
-     * Utility method to get currently mapped nodes
+     * mapped Utility method to get currently mapped nodes
      *
      * @return self
      */
@@ -480,17 +469,15 @@ BCR : MIDIKtl {
     }
 
     /**
-     * connect SuperCollider MIDIOut to BCR MIDIIn (Linux only)
+     * connectJack Connect SuperCollider MIDIOut to BCR MIDIIn (Linux only)
      * @TODO private use so refactor and move this to an extension
      */
     connectJack {
         var os = thisProcess.platform.name;
-        if (os == \linux, {
-            // TODO: ugly hardcoded values
-            "aconnect SuperCollider:5 BCR2000:0".unixCmd
-        }, {
-            "BCR::connectJack is not supported on %".format(os).warn
-        })
+        if (os == \linux,
+            { "aconnect SuperCollider:5 BCR2000:0".unixCmd }, // FIXME hardcoded values
+            { "BCR::connectJack is not supported on %".format(os).warn }
+        )
     }
 
     /**
@@ -505,8 +492,8 @@ BCR : MIDIKtl {
     /**
      * getCCNumForKey
      *
-     * @param symbol key
-     * @return int
+     * @param Symbol key
+     * @return Integer
     */
     getCCNumForKey { |key|
         ^defaults['BCR'][key].asString.drop(2).asInteger;
@@ -515,7 +502,7 @@ BCR : MIDIKtl {
     /**
      * getGroupChar For the 4 top encoder groups
      *
-     * @param int id
+     * @param Integer id
      * @return String
      */
     getGroupChar { |id|
@@ -541,15 +528,15 @@ BCR : MIDIKtl {
     /**
      * incrementCCNames
      * Increment ccKeys and automatically change lettre when needed:
-     * ex: \knB6, \knB7, \knB8, \knC1, ...
+     * ex: \knE6, \knE7, \knE8, \knF1, \knF2, ...
      *
-     * @param int size Number of times to increment
-     * @param int offsetNr
-     * @param int offsetChar
+     * @param Integer size       Number of times to increment
+     * @param Integer offsetNr   ID of the offset
+     * @param Integer offsetChar Char corresponding to the button row
      * @return Array
      */
-    incrementCCNames { | size, offsetNr, offsetChar |
-        ^size.collect { | i |
+    incrementCCNames { |size, offsetNr, offsetChar|
+        ^size.collect { |i|
             var newKey, currentId;
             currentId = (offsetNr - 1 + i % 8) + 1;
             if (currentId == 1 and: { i > 0 }, {
@@ -560,8 +547,7 @@ BCR : MIDIKtl {
     }
 
     /**
-     * *makeDefaults
-     * Initialize BCR CC params
+     * *makeDefaults Initialize BCR CC params
      *
      * @return self
      */
@@ -570,8 +556,7 @@ BCR : MIDIKtl {
     }
 
     /**
-     * *getDefaults
-     * Stores the CC numbers in 'defaults' Dictionary.
+     * *getDefaults Stores the CC numbers in 'defaults' Dictionary.
      *
      * @return Dictionary
      */
