@@ -28,6 +28,16 @@ BCR : MIDIKtl {
     var <nodeDict;
 
     /**
+     * @var Int destID Index of MIDIOut device used
+     */
+    var <destID;
+
+    /**
+     * @var bool update Enable|disable updating BCR2000
+     */
+    var <>update = true;
+
+    /**
      * @var String selector Selector for the "learn" buttons
      */
     var <selector = "btB";
@@ -211,7 +221,7 @@ BCR : MIDIKtl {
      */
     sendFromProxy { |node, pairs|
         var ctlNames, params, currVals, midiVals;
-        if (destID.notNil, {
+        if (destID.notNil and: update == true, {
             #ctlNames, params = pairs.flop;
             currVals = node.getKeysValues(params).flop[1];
             midiVals = currVals.collect { |val, i|
