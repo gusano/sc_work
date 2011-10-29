@@ -325,7 +325,7 @@ BCR : MIDIKtl {
      * @throws Warning if the selector is not found
      */
     unmap { |node|
-        if (node.isNil, { nodeDict.clear });
+        if (node.isNil, { this.unmapAll; ^this });
         try {
             nodeDict[node].keys.do{ |key|
                 if (key != 'params', {
@@ -346,7 +346,7 @@ BCR : MIDIKtl {
      * @return self
      */
     unmapAll {
-        this.unmap
+        nodeDict.keys.do{ |key| this.unmap(key) }
     }
 
     /**
