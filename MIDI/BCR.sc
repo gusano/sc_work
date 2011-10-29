@@ -246,6 +246,22 @@ BCR : MIDIKtl {
     }
 
     /**
+     * getNodeType
+     * Find out if the Node is a Synth or a NodeProxy.
+     * We assume that user passes a String or Symbol in case of a Synth
+     *
+     * @param mixed aNode
+     * @return mixed
+     */
+    getNodeType { | aNode |
+        if (aNode.isKindOf(NodeProxy), {
+            ^aNode
+        }, {
+            ^Synth.basicNew(aNode)
+        })
+    }
+
+    /**
      * autoMapNode
      * Declare a function that will recursively assign all node params to CCs
      * and which will be toggled by a given ccSelector.
@@ -257,8 +273,9 @@ BCR : MIDIKtl {
      * @return self
      * @TODO   refactor
      */
-    autoMapNode { |node, id, offset = 'knE1', preset|
-        var nodeValues = node.getKeysValues;
+    autoMapNode { |aNode, id, offset = 'knE1', preset|
+        var node       = this.getNodeType(aNode);
+        var nodeValues = this.getParamsValues(node);
         var nodeParams = nodeValues.flop[0];
         var ccKey      = (selector ++ id).asSymbol;
         var ccSelector = this.getCCNumForKey(ccKey);
@@ -314,7 +331,7 @@ BCR : MIDIKtl {
      */
     unmap { |node|
         if (node.isNil, {
-            this.unmapAll();
+            nodeDict.clear
         });
         try {
             nodeDict[node].keys.do{ |key|
@@ -351,9 +368,15 @@ BCR : MIDIKtl {
      */
     assignVolume { |node, id|
         var volKnob = "kn%%".format(this.getGroupChar(id), id).asSymbol;
-        this.addAction(volKnob, { |cc, val|
-            node.vol_(\amp.asSpec.map(val / 127), 0.05)
+        var func;
+        if (node.isKindOf(NodeProxy), {
+            func = { |cc, val| node.vol_(\amp.asSpec.map(val / 127), 0.05) }
+        }, {
+            // assume the Synth has a 'vol' param...
+            // TODO server message style with name
+            func = { |cc, val| node.set(\vol, \amp.asSpec.map(val / 127)) }
         });
+        this.addAction(volKnob, func);
         nodeDict[node].add(
             'volume' -> "0_%".format(this.getCCNumForKey(volKnob)).asSymbol
         );
@@ -368,13 +391,19 @@ BCR : MIDIKtl {
      */
     assignToggle { |node, id|
         var tglButton = "bt%%".format(this.getGroupChar(id), id).asSymbol;
-        this.addAction(tglButton, { |cc, val|
+        var func;
+        if (node.isKindOf(NodeProxy), {
+            func = { |cc, val|
             if (val > 0 and: {node.monitor.isPlaying.not}, {
                 node.play
             }, {
                 node.stop
-            })
+            }) }
+        }, {
+            func = { "not implemented".postln };
+            //s.sendBundle(s.latency, ["/s_new", "test", s.nextNodeID, 0, 1])
         });
+        this.addAction(tglButton, func);
         nodeDict[node].add(
             'toggle' -> "0_%".format(this.getCCNumForKey(tglButton)).asSymbol
         );
@@ -389,18 +418,53 @@ BCR : MIDIKtl {
      */
     assignReset { |node, id, pairs, defaultparams|
         var rstButton = "tr%%".format(this.getGroupChar(id), id).asSymbol;
-        this.addAction(rstButton, { |cc, val|
+        var func;
+
+        if (node.isKindOf(NodeProxy), {
+            func = { |cc, val|
             if (val > 0, {
                 // safer to use default NodeProxy params values than Spec ones
                 defaultparams.do { |def|
                     node.set(def[0], def[1]);
                 };
                 this.sendFromProxy(node, pairs);
-            })
+            }) }
+        }, {
+            "BCR::assignRest is not implemented for Synth".warn;
+            ^nil
         });
+        this.addAction(rstButton, func);
         nodeDict[node].add(
             'reset' -> "0_%".format(this.getCCNumForKey(rstButton)).asSymbol
         );
+    }
+
+    /**
+     * getParamsValues
+     *
+     * @return Array
+     * @throws Error if the node has a wrong type (i.e. not Synth or NodeProxy)
+     */
+    getParamsValues { |node|
+        if (node.isKindOf(NodeProxy), {
+            ^node.getKeysValues
+        }, {
+            ^this.getSynthKeysValues(node)
+        })
+    }
+
+    /**
+     * getSynthKeysValues
+     *
+     * @return Array
+     */
+    getSynthKeysValues { |node|
+        var name = node.defName.asSymbol;
+        var metadata = SynthDescLib.global.at(name).metadata;
+
+        if (metadata.notNil and: {metadata.defaults.notNil}, {
+            // TODO
+        })
     }
 
     /**
