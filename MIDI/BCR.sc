@@ -89,11 +89,11 @@ BCR : MIDIKtl {
      * checkDependencies
      *
      * @return self
-     * @throws Error if dependencies are not installed
+     * @throws BCRError if dependencies are not installed
      */
     checkDependencies {
         if ('Ktl'.asClass.isNil, {
-            Error("Required 'Ktl' quark is not installed.").throw
+            BCRError("Required 'Ktl' quark is not installed.").throw
         })
     }
 
@@ -271,7 +271,7 @@ BCR : MIDIKtl {
      * @param Symbol offset
      * @param Preset preset TODO
      * @return self
-     * @throws Error if the mapping id is invalid
+     * @throws BCRError if the mapping id is invalid
      * @TODO   refactor
      */
     mapTo { |aNode, id, offset = 'knE1', preset|
@@ -279,7 +279,7 @@ BCR : MIDIKtl {
             offsetNr, ctlKeyName, ccNewNames, pairs, func, newParams;
 
         if (id > 8, {
-            Error("BCR: cannot map more than 8 nodes.").throw
+            BCRError("Cannot map more than 8 nodes.").throw
         });
         node       = this.getNodeType(aNode);
         nodeValues = this.getParamsValues(node);
@@ -443,7 +443,6 @@ BCR : MIDIKtl {
      * getParamsValues
      *
      * @return Array
-     * @throws Error if the node has a wrong type (i.e. not Synth or NodeProxy)
      */
     getParamsValues { |node|
         if (node.isKindOf(NodeProxy), {
@@ -617,4 +616,11 @@ BCR : MIDIKtl {
         ^dict
     }
 
+}
+
+
+BCRError : Error {
+    errorString {
+        ^"BCR ERROR: " ++ what
+    }
 }
