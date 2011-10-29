@@ -271,6 +271,9 @@ BCR : MIDIKtl {
         var newParams = ccNewNames.collect{ |key|
             "0_%".format(this.getCCNumForKey(key)).asSymbol
         };
+        //if (offsetChar.ascii > 69, {
+        //    "Mapping offset is too low: %".format(offsetChar).warn
+        //});
         ktlDict.put(ctlKeyName, func);
         // create nodeDict[node] and save params and recall
         nodeDict.put(node, ());
@@ -300,6 +303,9 @@ BCR : MIDIKtl {
      * @throws Warning if the selector is not found
      */
     unmap { |node|
+        if (node.isNil, {
+            this.unmapAll();
+        });
         try {
             nodeDict[node].keys.do{ |key|
                 if (key != 'params', {
@@ -311,6 +317,18 @@ BCR : MIDIKtl {
             nodeDict.removeAt(node);
         } { |e|
             e.errorString.warn;
+        }
+    }
+
+    /**
+     * unmapAll
+     * Unmap all nodes currently assigned
+     *
+     * @return self
+     */
+    unmapAll {
+        nodeDict.keys.do{ |key|
+            this.unmap(key)
         }
     }
 
