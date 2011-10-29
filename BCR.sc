@@ -262,7 +262,7 @@ BCR : MIDIKtl {
     }
 
     /**
-     * autoMapNode
+     * mapTo
      * Declare a function that will recursively assign all node params to CCs
      * and which will be toggled by a given ccSelector.
      *
@@ -273,7 +273,7 @@ BCR : MIDIKtl {
      * @return self
      * @TODO   refactor
      */
-    autoMapNode { |aNode, id, offset = 'knE1', preset|
+    mapTo { |aNode, id, offset = 'knE1', preset|
         var node       = this.getNodeType(aNode);
         var nodeValues = this.getParamsValues(node);
         var nodeParams = nodeValues.flop[0];
@@ -311,14 +311,6 @@ BCR : MIDIKtl {
         this.assignReset(node, id, pairs, nodeValues);
         // FIXME: TODO
         //if ( preset.notNil, { presets.put(ccKey, preset) });
-    }
-
-    /**
-     * mapTo
-     * Shortcut for autoMapNode
-     */
-    mapTo { |node, id, offset = 'knE1', preset|
-        this.autoMapNode(node, id, offset, preset)
     }
 
     /**
