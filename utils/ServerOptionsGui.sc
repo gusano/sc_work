@@ -38,6 +38,11 @@ ServerOptionsGui {
     var settings;
 
     /**
+     * @var Dictionary currentValues
+     */
+    var currentValues;
+
+    /**
      * @var Window w
      */
     var w;
@@ -67,37 +72,40 @@ ServerOptionsGui {
      */
     init {
         simpleOptions = (
-            \numAudioBusChannels: \static,
-            \numControlBusChannels: \static,
-            \numInputBusChannels: \static,
-            \numOutputBusChannels: \static,
-            \maxNodes: \static,
-            \maxSynthDefs: \static,
-            \blockSize: \static,
-            \hardwareBufferSize: \static,
-            \memSize: \static,
-            \numWireBufs: \static,
-            \sampleRate: \static,
-            \inDevice: \static,
-            \outDevice: \static
+            \numAudioBusChannels: (\type: Integer, \mode: "static"),
+            \numControlBusChannels: (\type: Integer, \mode: "static"),
+            \numInputBusChannels: (\type: Integer, \mode: "static"),
+            \numOutputBusChannels: (\type: Integer, \mode: "static"),
+            \maxNodes: (\type: Integer, \mode: "static"),
+            \maxSynthDefs: (\type: Integer, \mode: "static"),
+            \blockSize: (\type: Integer, \mode: "static"),
+            \hardwareBufferSize: (\type: Integer, \mode: "static"),
+            \memSize: (\type: Integer, \mode: "static"),
+            \numWireBufs: (\type: Integer, \mode: "static"),
+            \sampleRate: (\type: Integer, \mode: "static"),
+            \inDevice: (\type: String, \mode: "static"),
+            \outDevice: (\type: String, \mode: "static")
         );
 
         advancedOptions = (
-            \protocol: \static,
-            \numRGens: \static,
-            \loadDefs: \static,
-            \inputStreamsEnabled: \static,
-            \blockAllocClass: \static,
-            \zeroConf: \static,
-            \restrictedPath: \static,
-            \initialNodeID: \static,
-            \remoteControlVolume: \static,
-            \memoryLocking: \static
+            \protocol: (\type: String, \mode: "static"),
+            \numRGens: (\type: Integer, \mode: "static"),
+            \loadDefs: (\type: Boolean, \mode: "static"),
+            \inputStreamsEnabled: (\type: Boolean, \mode: "static"),
+            \blockAllocClass: (\type: Boolean, \mode: "static"),
+            // FIXME
+            //\zeroConf: (\type: "static"),
+            //\restrictedPath: (\type: "static"),
+            // FIXME special
+            //\initialNodeID: (\type: "static"),
+            \remoteControlVolume: (\type: Boolean, \mode: "static"),
+            \memoryLocking: (\type: Boolean, \mode: "static")
         );
 
         server = Server.default;
         serverOptions = server.options;
         settings = ();
+        currentValues = ();
         this.prepareSettings();
         this.drawGui();
     }
@@ -135,9 +143,11 @@ ServerOptionsGui {
         var view = View(w, Rect(0, 50, 400, 330));
         view.addFlowLayout;
         options.keys.do{ |opt|
-            var val = serverOptions.tryPerform(opt.asGetter).asString;
+            var textField, val;
+            val= serverOptions.tryPerform(opt.asGetter).asString;
             StaticText(view, 200@20).string_(opt);
-            TextField(view, 180@20).string_(val);
+            textField = TextField(view, 180@20).string_(val);
+            currentValues.add(opt -> textField);
         };
         if (visible.not, { view.visible_(visible) });
         ^view
