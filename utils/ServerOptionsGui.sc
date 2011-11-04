@@ -1,3 +1,15 @@
+/**
+ * @file    ServerOptionsGui.sc
+ * @desc    GUI utility to change or visualize default server options.
+ * @author  Yvan Volochine <yvan.volochine@gmail.com>
+ * @license http://www.gnu.org/licenses/gpl-3.0.txt
+ * @version 0.1
+ * @since   2011-11-04
+ * @link    http://github.com/gusano/sc_work/tree/master/utils
+ *
+ * @todo alphabetically sort options (if possible),
+ */
+
 ServerOptionsGui {
 
     /**
