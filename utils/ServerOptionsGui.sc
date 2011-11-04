@@ -99,7 +99,8 @@ ServerOptionsGui {
             // FIXME special
             //\initialNodeID: (\type: "static"),
             \remoteControlVolume: (\type: Boolean, \mode: "static"),
-            \memoryLocking: (\type: Boolean, \mode: "static")
+            \memoryLocking: (\type: Boolean, \mode: "static")//,
+            //\threads: (\type: "static")
         );
 
         server = Server.default;
