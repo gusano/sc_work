@@ -91,6 +91,8 @@ ServerOptionsGui {
 
         server = Server.default;
         serverOptions = server.options;
+        settings = ();
+        this.prepareSettings();
         this.drawGui();
     }
 
@@ -98,10 +100,10 @@ ServerOptionsGui {
      * drawGui Draw the main GUI
      */
     drawGui {
-        var button, blueColor;
+        var modeButton, applyButton, cancelButton, blueColor;
         blueColor = Color.new(0.25, 0.55, 0.83);
-        w = Window.new("Server Options", Rect(100, 100, 400, 400)).front;
-        button = Button(w, Rect(240, 10, 150, 30)).states_(
+        w = Window.new("Server Options", Rect(100, 100, 400, 410)).front;
+        modeButton = Button(w, Rect(240, 10, 150, 30)).states_(
             [
                 ["Advanced settings", Color.white, blueColor],
                 ["Simple settings", Color.white, blueColor]
@@ -110,6 +112,11 @@ ServerOptionsGui {
             this.swapView(butt.value)
         });
         this.drawSettings(simpleOptions);
+        cancelButton = Button(w, Rect(30, 380, 150, 20))
+            .states_([["Cancel"]])
+            .action_({ w.close });
+        applyButton = Button(w, Rect(220, 380, 150, 20))
+            .states_([["Apply (reboot server)"]]).action_{ this.applyChanges() };
     }
 
     /**
@@ -118,7 +125,7 @@ ServerOptionsGui {
      */
     drawSettings { |options|
         if (view.notNil, { view.remove });
-        view = CompositeView(w, Rect(0, 50, 400, 350));
+        view = CompositeView(w, Rect(0, 50, 400, 330));
         view.addFlowLayout;
         options.keys.do{ |opt|
             var val = serverOptions.tryPerform(opt.asGetter).asString;
@@ -136,5 +143,23 @@ ServerOptionsGui {
             0, { this.drawSettings(simpleOptions) },
             1, { this.drawSettings(advancedOptions) }
         )
+    }
+
+    /**
+     * applyChanges
+     */
+    applyChanges {
+        // TODO
+    }
+
+    /**
+     * prepareSettings
+     */
+    prepareSettings {
+        [simpleOptions, advancedOptions].do{ |options|
+            options.keys.do{ |opt|
+                settings.add(opt -> serverOptions.tryPerform(opt.asGetter))
+            }
+        }
     }
 }
