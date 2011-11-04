@@ -43,9 +43,14 @@ ServerOptionsGui {
     var w;
 
     /**
-     * @var View view The composite view containing the settings
+     * @var View simpleView A composite view containing the basic settings
      */
-    var view;
+    var simpleView;
+
+    /**
+     * @var View advancedView A composite view containing the advanced settings
+     */
+    var advancedView;
 
     /**
      * *new
@@ -58,6 +63,7 @@ ServerOptionsGui {
     /**
      * init Initialise default server options
      * @return self
+     * @TODO: add special mode (sampleRate, devices, ...)
      */
     init {
         simpleOptions = (
@@ -111,7 +117,8 @@ ServerOptionsGui {
         ).action_({ |butt|
             this.swapView(butt.value)
         });
-        this.drawSettings(simpleOptions);
+        simpleView = this.drawSettings(simpleOptions);
+        advancedView = this.drawSettings(advancedOptions, false);
         cancelButton = Button(w, Rect(30, 380, 150, 20))
             .states_([["Cancel"]])
             .action_({ w.close });
@@ -122,16 +129,18 @@ ServerOptionsGui {
     /**
      * drawSettings Draws the settings and their corresponding values
      * @param Dictionary options
+     * @param boolean    visible
      */
-    drawSettings { |options|
-        if (view.notNil, { view.remove });
-        view = CompositeView(w, Rect(0, 50, 400, 330));
+    drawSettings { |options, visible = true|
+        var view = View(w, Rect(0, 50, 400, 330));
         view.addFlowLayout;
         options.keys.do{ |opt|
             var val = serverOptions.tryPerform(opt.asGetter).asString;
             StaticText(view, 200@20).string_(opt);
             TextField(view, 180@20).string_(val);
-        }
+        };
+        if (visible.not, { view.visible_(visible) });
+        ^view
     }
 
     /**
@@ -140,8 +149,8 @@ ServerOptionsGui {
      */
     swapView { |buttonValue|
         buttonValue.switch(
-            0, { this.drawSettings(simpleOptions) },
-            1, { this.drawSettings(advancedOptions) }
+            0, { advancedView.visible_(false); simpleView.visible_(true) },
+            1, { simpleView.visible_(false); advancedView.visible_(true) }
         )
     }
 
