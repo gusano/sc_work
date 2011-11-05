@@ -7,7 +7,8 @@
  * @since   2011-11-04
  * @link    http://github.com/gusano/sc_work/tree/master/utils
  *
- * @todo add a server argument, alphabetically sort options (if possible),
+ * @usage   g = ServerOptionsGui(s)
+ * @todo    alphabetically sort options (if possible),
  */
 
 ServerOptionsGui {
@@ -43,7 +44,7 @@ ServerOptionsGui {
     var currentValues;
 
     /**
-     * @var Window w
+     * @var Window w The main GUI window
      */
     var w;
 
@@ -58,17 +59,17 @@ ServerOptionsGui {
     var advancedView;
 
     /**
-     * @var View specialView A view containing the special settings
+     * @var View specialView A view containing the special recording settings
      */
     var specialView;
 
     /**
-     * @var Integer width
+     * @var Integer width Main window width
      */
     var width = 300;
 
     /**
-     * @var Integer height
+     * @var Integer height Main window height
      */
     var height = 460;
 
@@ -136,7 +137,9 @@ ServerOptionsGui {
     }
 
     /**
-     * drawGui Draw the main GUI
+     * drawGui
+     * Draw the main GUI: one QVLayout containing one QHLayout for the top button,
+     * one QGridLayout for the options and one QHLayout for the bottom buttons.
      */
     drawGui {
         var topLayout, bottomLayout;
@@ -241,7 +244,9 @@ ServerOptionsGui {
     }
 
     /**
-     * applyChanges Only apply modified settings and reboot the server
+     * applyChanges
+     * Only apply modified settings for all options (except recording options
+     * which are set anyway) and reboot the server
      */
     applyChanges {
         [simpleOptions, advancedOptions].do{ |options|
@@ -253,7 +258,7 @@ ServerOptionsGui {
                 })
             }
         };
-        // apply special options whether they changed or not
+
         specialOptions.keys.do{ |key|
             var value;
             if (key == \recHeaderFormat or: { key == \recSampleFormat }, {
@@ -263,12 +268,14 @@ ServerOptionsGui {
             });
             server.tryPerform(key.asSetter, value);
         };
+
         server.reboot;
         w.close;
     }
 
     /**
      * getSampleFormats
+     * @return Array
      */
     getSampleFormats {
         ^[\int8, \int16, \int24, \int32, \mulaw, \alaw, \float]
@@ -276,6 +283,7 @@ ServerOptionsGui {
 
     /**
      * getHeaderFormats
+     * @return Array
      */
     getHeaderFormats {
         ^[
