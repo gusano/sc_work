@@ -98,8 +98,6 @@ ServerOptionsGui {
             \numControlBusChannels: (\type: NumberBox, \modified: false),
             \numInputBusChannels: (\type: NumberBox, \modified: false),
             \numOutputBusChannels: (\type: NumberBox, \modified: false),
-            \maxNodes: (\type: NumberBox, \modified: false),
-            \maxSynthDefs: (\type: NumberBox, \modified: false),
             \blockSize: (\type: NumberBox, \modified: false),
             \memSize: (\type: NumberBox, \modified: false),
             \sampleRate: (\type: NumberBox, \modified: false),
@@ -108,6 +106,8 @@ ServerOptionsGui {
         );
 
         advancedOptions = (
+            \maxNodes: (\type: NumberBox, \modified: false),
+            \maxSynthDefs: (\type: NumberBox, \modified: false),
             \numWireBufs: (\type: NumberBox, \modified: false),
             \hardwareBufferSize: (\type: NumberBox, \modified: false),
             \protocol: (\type: TextField, \modified: false),
