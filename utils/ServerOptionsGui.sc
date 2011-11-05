@@ -58,6 +58,17 @@ ServerOptionsGui {
     var advancedView;
 
     /**
+     * @var Integer width
+     */
+    var width = 300;
+
+    /**
+     * @var Integer height
+     */
+    var height = 410;
+
+
+    /**
      * *new
      * @return super
      */
@@ -116,23 +127,29 @@ ServerOptionsGui {
      * drawGui Draw the main GUI
      */
     drawGui {
-        var modeButton, applyButton, cancelButton, blueColor;
-        blueColor = Color.new(0.25, 0.55, 0.83);
-        w = Window.new("Server Options", Rect(100, 100, 400, 410)).front;
-        modeButton = Button(w, Rect(240, 10, 150, 30)).states_(
-            [
-                ["Advanced settings", Color.white, blueColor],
-                ["Simple settings", Color.white, blueColor]
-            ]
-        ).action_({ |butt|
+        var topLayout, bottomLayout;
+        var infoText, modeButton, applyButton, cancelButton;
+
+        infoText = "Options for" + server.name;
+
+        modeButton = Button().states_([
+            ["Advanced settings"], ["Simple settings"]
+        ]).action_({ |butt|
             this.swapView(butt.value)
         });
+
         simpleView = this.drawSettings(simpleOptions);
         advancedView = this.drawSettings(advancedOptions, false);
-        cancelButton = Button(w, Rect(30, 380, 150, 20))
-            .states_([["Cancel"]]).action_({ w.close });
-        applyButton = Button(w, Rect(220, 380, 150, 20))
-            .states_([["Apply (reboot server)"]]).action_{ this.applyChanges() };
+
+        cancelButton = Button().states_([["Cancel"]]).action_({ w.close });
+        applyButton = Button().states_([["Apply (reboot server)"]])
+            .action_{ this.applyChanges() };
+
+        topLayout = QHLayout(StaticText().string_(infoText), modeButton);
+        bottomLayout = QHLayout(cancelButton, applyButton);
+
+        w = Window.new("Server Options", Rect(100, 100, width, height)).front;
+        w.layout_(QVLayout(topLayout, simpleView, advancedView, bottomLayout));
     }
 
     /**
@@ -141,15 +158,18 @@ ServerOptionsGui {
      * @param boolean    visible
      */
     drawSettings { |options, visible = true|
-        var view = View(w, Rect(0, 50, 400, 330));
-        view.addFlowLayout;
+        var view = View();
+        var grid = QGridLayout();
+
+        view.layout_(grid);
         view.visible_(visible);
 
-        options.keys.do{ |opt|
+        options.keys.do{ |opt, i|
             var guiElement, val;
             val = serverOptions.tryPerform(opt.asGetter);
-            StaticText(view, 200@20).string_(opt);
-            guiElement = options[opt][\type].new(view);
+            grid.add(StaticText().string_(opt), i, 0);
+            guiElement = options[opt][\type].new();
+            grid.add(guiElement, i, 1);
             if (val.notNil, { guiElement.value_(val) });
             currentValues.add(opt -> guiElement);
         };
@@ -172,7 +192,9 @@ ServerOptionsGui {
      * applyChanges
      */
     applyChanges {
-        // TODO
+        currentValues.keys.do{ |key|
+            [key, currentValues[key].value].postcs
+        }
     }
 
     /**
