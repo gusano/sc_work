@@ -33,9 +33,9 @@ ServerOptionsGui {
     var advancedOptions;
 
     /**
-     * @var Dictionary specialOptions Options that are set when server is booted
+     * @var Dictionary recordingOptions Options that are set when server is booted
      */
-    var specialOptions;
+    var recordingOptions;
 
     /**
      * @var OrderedIdentitySet orderedSimpleKeys Sorted simple options
@@ -131,7 +131,7 @@ ServerOptionsGui {
             \memoryLocking:       (\type: CheckBox,  \modified: false)
         );
 
-        specialOptions = (
+        recordingOptions = (
             \recChannels:     (\type: NumberBox, \modified: false),
             \recHeaderFormat: (\type: PopUpMenu, \modified: false),
             \recSampleFormat: (\type: PopUpMenu, \modified: false)
@@ -140,7 +140,7 @@ ServerOptionsGui {
         orderedSimpleKeys = OrderedIdentitySet[
             \inDevice, \outDevice, \numInputBusChannels, \numOutputBusChannels,
             \sampleRate, \blockSize, \memSize, \numAudioBusChannels,
-                \numControlBusChannels
+            \numControlBusChannels
         ];
 
         orderedAdvancedKeys = OrderedIdentitySet[
@@ -177,7 +177,7 @@ ServerOptionsGui {
         });
 
         simpleView = this.drawSettings(simpleOptions);
-        specialView = this.drawSettings(specialOptions);
+        specialView = this.drawSettings(recordingOptions);
         advancedView = this.drawSettings(advancedOptions, false);
 
         cancelButton = Button().states_([["Cancel"]]).action_({ w.close });
@@ -216,9 +216,9 @@ ServerOptionsGui {
         view.visible_(visible);
 
         options.switch(
-            simpleOptions,   { keys = orderedSimpleKeys },
-            advancedOptions, { keys = orderedAdvancedKeys },
-            specialOptions,  { keys = specialOptions.keys }
+            simpleOptions,    { keys = orderedSimpleKeys },
+            advancedOptions,  { keys = orderedAdvancedKeys },
+            recordingOptions, { keys = recordingOptions.keys }
         );
 
         keys.do{ |opt, i|
@@ -230,39 +230,48 @@ ServerOptionsGui {
             val = serverOptions.tryPerform(opt.asGetter);
 
             guiElement = options[opt][\type].new();
-            guiElement.action_{ |el| options[opt][\modified] = true };
+            guiElement.action_{ options[opt][\modified] = true };
 
             grid.add(label, i, 0);
             grid.add(guiElement, i, 1);
 
             if (val.notNil, { guiElement.value_(val) });
 
-            if (options == specialOptions, {
-                if (opt == \recChannels, {
-                    guiElement.value_(server.recChannels)
-                });
-                if (opt == \recHeaderFormat, {
-                    guiElement.items_(this.getHeaderFormats());
-                    guiElement.value_(
-                        this.getHeaderFormats().indexOf(
-                            server.recHeaderFormat.asSymbol
-                        )
-                    );
-                });
-                if (opt == \recSampleFormat, {
-                    guiElement.items_(this.getSampleFormats());
-                    guiElement.value_(
-                        this.getSampleFormats().indexOf(
-                            server.recSampleFormat.asSymbol
-                        )
-                    );
-                })
+            if (options == recordingOptions, {
+                this.setRecordingOption(opt, guiElement)
             });
 
             currentValues.add(opt -> guiElement);
         };
 
         ^view
+    }
+
+    /**
+     * setRecordingOption Special case for server recording settings
+     * @param Symbol option
+     * @param mixed  GUI element
+     */
+    setRecordingOption { |option, element|
+        option.switch(
+            \recChannels, { element.value_(server.recChannels) },
+            \recHeaderFormat, {
+                element.items_(this.getHeaderFormats());
+                element.value_(
+                    this.getHeaderFormats().indexOf(
+                        server.recHeaderFormat.asSymbol
+                    )
+                )
+            },
+            \recSampleFormat, {
+                element.items_(this.getSampleFormats());
+                element.value_(
+                    this.getSampleFormats().indexOf(
+                        server.recSampleFormat.asSymbol
+                    )
+                )
+            }
+        )
     }
 
     /**
@@ -294,7 +303,7 @@ ServerOptionsGui {
             }
         };
 
-        specialOptions.keys.do{ |key|
+        recordingOptions.keys.do{ |key|
             var value;
             if (key == \recHeaderFormat or: { key == \recSampleFormat }, {
                 value = currentValues[key].item;
