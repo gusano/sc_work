@@ -148,8 +148,15 @@ ServerOptionsGui {
         topLayout = QHLayout(StaticText().string_(infoText), modeButton);
         bottomLayout = QHLayout(cancelButton, applyButton);
 
-        w = Window.new("Server Options", Rect(100, 100, width, height)).front;
-        w.layout_(QVLayout(topLayout, simpleView, advancedView, bottomLayout));
+        w = Window.new("Server Options").front;
+        w.bounds_(
+            Rect(
+                (Window.screenBounds.width / 2) - (width / 2),
+                (Window.screenBounds.height / 2) - (height / 2),
+                width,
+                height
+            )
+        ).layout_(QVLayout(topLayout, simpleView, advancedView, bottomLayout));
     }
 
     /**
