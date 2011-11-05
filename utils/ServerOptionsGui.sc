@@ -33,6 +33,11 @@ ServerOptionsGui {
     var advancedOptions;
 
     /**
+     * @var Dictionary specialOptions Options that are set when server is booted
+     */
+    var specialOptions;
+
+    /**
      * @var Dictionary currentValues
      */
     var currentValues;
@@ -53,6 +58,11 @@ ServerOptionsGui {
     var advancedView;
 
     /**
+     * @var View specialView A view containing the special settings
+     */
+    var specialView;
+
+    /**
      * @var Integer width
      */
     var width = 300;
@@ -60,7 +70,7 @@ ServerOptionsGui {
     /**
      * @var Integer height
      */
-    var height = 410;
+    var height = 520;
 
 
     /**
@@ -109,6 +119,13 @@ ServerOptionsGui {
             \remoteControlVolume: (\type: CheckBox, \modified: false),
             \memoryLocking: (\type: CheckBox, \modified: false)
         );
+
+        specialOptions = (
+            \recChannels: (\type: NumberBox, \modified: false),
+            \recHeaderFormat: (\type: PopUpMenu, \modified: false),
+            \recSampleFormat: (\type: PopUpMenu, \modified: false)
+        );
+
         if (Server.program.asString.endsWith("supernova")) {
             advancedOptions.put(\threads, (\type: NumberBox, \modified: false))
         };
@@ -134,6 +151,7 @@ ServerOptionsGui {
         });
 
         simpleView = this.drawSettings(simpleOptions);
+        specialView = this.drawSettings(specialOptions);
         advancedView = this.drawSettings(advancedOptions, false);
 
         cancelButton = Button().states_([["Cancel"]]).action_({ w.close });
@@ -151,7 +169,11 @@ ServerOptionsGui {
                 width,
                 height
             )
-        ).layout_(QVLayout(topLayout, simpleView, advancedView, bottomLayout));
+        ).layout_(
+            QVLayout(
+                topLayout, specialView, simpleView, advancedView, bottomLayout
+            )
+        );
     }
 
     /**
@@ -178,6 +200,27 @@ ServerOptionsGui {
             grid.add(label, i, 0);
             grid.add(guiElement, i, 1);
             if (val.notNil, { guiElement.value_(val) });
+            if (options == specialOptions, {
+                if (opt == \recChannels, {
+                    guiElement.value_(server.recChannels)
+                });
+                if (opt == \recHeaderFormat, {
+                    guiElement.items_(this.getHeaderFormats());
+                    guiElement.value_(
+                        this.getHeaderFormats().indexOf(
+                            server.recHeaderFormat.asSymbol
+                        )
+                    );
+                });
+                if (opt == \recSampleFormat, {
+                    guiElement.items_(this.getSampleFormats());
+                    guiElement.value_(
+                        this.getSampleFormats().indexOf(
+                            server.recSampleFormat.asSymbol
+                        )
+                    );
+                })
+            });
             currentValues.add(opt -> guiElement);
         };
 
@@ -189,9 +232,11 @@ ServerOptionsGui {
      * @param Integer buttonValue
      */
     swapView { |buttonValue|
+        var simple = [simpleView, specialView];
+
         buttonValue.switch(
-            0, { advancedView.visible_(false); simpleView.visible_(true) },
-            1, { simpleView.visible_(false); advancedView.visible_(true) }
+            0, { simple.do(_.visible_(true)); advancedView.visible_(false) },
+            1, { simple.do(_.visible_(false)); advancedView.visible_(true) }
         )
     }
 
@@ -208,8 +253,35 @@ ServerOptionsGui {
                 })
             }
         };
+        // apply special options whether they changed or not
+        specialOptions.keys.do{ |key|
+            var value;
+            if (key == \recHeaderFormat or: { key == \recSampleFormat }, {
+                value = currentValues[key].item;
+            }, {
+                value = currentValues[key].value;
+            });
+            server.tryPerform(key.asSetter, value);
+        };
         server.reboot;
         w.close;
     }
 
+    /**
+     * getSampleFormats
+     */
+    getSampleFormats {
+        ^[\int8, \int16, \int24, \int32, \mulaw, \alaw, \float]
+    }
+
+    /**
+     * getHeaderFormats
+     */
+    getHeaderFormats {
+        ^[
+            \aiff, \wav, \sun, \next, \sd2, \ircam, \raw, \mat4,
+            \mat5, \paf, \svx, \nist, \voc, \w64, \pvf, \xi, \htk,
+            \sds, \avr, \flac, \caf
+        ]
+    }
 }
