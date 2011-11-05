@@ -107,9 +107,11 @@ ServerOptionsGui {
             \restrictedPath: (\type: TextField, \modified: false),
             \initialNodeID: (\type: NumberBox, \modified: false),
             \remoteControlVolume: (\type: CheckBox, \modified: false),
-            \memoryLocking: (\type: CheckBox, \modified: false),
-            \threads: (\type: NumberBox, \modified: false)
+            \memoryLocking: (\type: CheckBox, \modified: false)
         );
+        if (Server.program.asString.endsWith("supernova")) {
+            advancedOptions.put(\threads, (\type: NumberBox, \modified: false))
+        };
 
         serverOptions = server.options;
         currentValues = ();
