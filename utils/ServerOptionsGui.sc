@@ -70,7 +70,7 @@ ServerOptionsGui {
     /**
      * @var Integer height
      */
-    var height = 520;
+    var height = 460;
 
 
     /**
@@ -100,15 +100,15 @@ ServerOptionsGui {
             \maxNodes: (\type: NumberBox, \modified: false),
             \maxSynthDefs: (\type: NumberBox, \modified: false),
             \blockSize: (\type: NumberBox, \modified: false),
-            \hardwareBufferSize: (\type: NumberBox, \modified: false),
             \memSize: (\type: NumberBox, \modified: false),
-            \numWireBufs: (\type: NumberBox, \modified: false),
             \sampleRate: (\type: NumberBox, \modified: false),
             \inDevice: (\type: TextField, \modified: false),
             \outDevice: (\type: TextField, \modified: false)
         );
 
         advancedOptions = (
+            \numWireBufs: (\type: NumberBox, \modified: false),
+            \hardwareBufferSize: (\type: NumberBox, \modified: false),
             \protocol: (\type: TextField, \modified: false),
             \numRGens: (\type: NumberBox, \modified: false),
             \loadDefs: (\type: CheckBox, \modified: false),
