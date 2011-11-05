@@ -130,7 +130,7 @@ ServerOptionsGui {
         var topLayout, bottomLayout;
         var infoText, modeButton, applyButton, cancelButton;
 
-        infoText = "Options for" + server.name;
+        infoText = StaticText().string_("Options for" + server.name);
 
         modeButton = Button().states_([
             ["Advanced settings"], ["Simple settings"]
@@ -145,7 +145,7 @@ ServerOptionsGui {
         applyButton = Button().states_([["Apply (reboot server)"]])
             .action_{ this.applyChanges() };
 
-        topLayout = QHLayout(StaticText().string_(infoText), modeButton);
+        topLayout = QHLayout(infoText, modeButton);
         bottomLayout = QHLayout(cancelButton, applyButton);
 
         w = Window.new("Server Options").front;
@@ -165,17 +165,21 @@ ServerOptionsGui {
      * @param boolean    visible
      */
     drawSettings { |options, visible = true|
-        var view = View();
+        var view = View().background_(Color.new(0.58, 0.69, 0.75));
         var grid = QGridLayout();
 
         view.layout_(grid);
         view.visible_(visible);
 
         options.keys.do{ |opt, i|
-            var guiElement, val;
+            var label, guiElement, val;
+
+            label = StaticText().string_(opt)
+                .stringColor_(Color.new(0.1, 0.1, 0.1));
             val = serverOptions.tryPerform(opt.asGetter);
-            grid.add(StaticText().string_(opt), i, 0);
             guiElement = options[opt][\type].new();
+
+            grid.add(label, i, 0);
             grid.add(guiElement, i, 1);
             if (val.notNil, { guiElement.value_(val) });
             currentValues.add(opt -> guiElement);
