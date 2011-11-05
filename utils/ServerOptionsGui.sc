@@ -46,7 +46,7 @@ ServerOptionsGui {
     /**
      * @var Window w The main GUI window
      */
-    var w;
+    var <w;
 
     /**
      * @var View simpleView A view containing the basic settings
@@ -93,43 +93,43 @@ ServerOptionsGui {
         }, {
             server = Server.default;
         });
+
         simpleOptions = (
-            \numAudioBusChannels: (\type: NumberBox, \modified: false),
+            \numAudioBusChannels:   (\type: NumberBox, \modified: false),
             \numControlBusChannels: (\type: NumberBox, \modified: false),
-            \numInputBusChannels: (\type: NumberBox, \modified: false),
-            \numOutputBusChannels: (\type: NumberBox, \modified: false),
-            \blockSize: (\type: NumberBox, \modified: false),
-            \memSize: (\type: NumberBox, \modified: false),
-            \sampleRate: (\type: NumberBox, \modified: false),
-            \inDevice: (\type: TextField, \modified: false),
-            \outDevice: (\type: TextField, \modified: false)
+            \numInputBusChannels:   (\type: NumberBox, \modified: false),
+            \numOutputBusChannels:  (\type: NumberBox, \modified: false),
+            \blockSize:             (\type: NumberBox, \modified: false),
+            \memSize:               (\type: NumberBox, \modified: false),
+            \sampleRate:            (\type: NumberBox, \modified: false),
+            \inDevice:              (\type: TextField, \modified: false),
+            \outDevice:             (\type: TextField, \modified: false)
         );
 
         advancedOptions = (
-            \maxNodes: (\type: NumberBox, \modified: false),
-            \maxSynthDefs: (\type: NumberBox, \modified: false),
-            \numWireBufs: (\type: NumberBox, \modified: false),
-            \hardwareBufferSize: (\type: NumberBox, \modified: false),
-            \protocol: (\type: TextField, \modified: false),
-            \numRGens: (\type: NumberBox, \modified: false),
-            \loadDefs: (\type: CheckBox, \modified: false),
+            \maxNodes:            (\type: NumberBox, \modified: false),
+            \maxSynthDefs:        (\type: NumberBox, \modified: false),
+            \numWireBufs:         (\type: NumberBox, \modified: false),
+            \hardwareBufferSize:  (\type: NumberBox, \modified: false),
+            \protocol:            (\type: TextField, \modified: false),
+            \numRGens:            (\type: NumberBox, \modified: false),
+            \loadDefs:            (\type: CheckBox,  \modified: false),
             \inputStreamsEnabled: (\type: TextField, \modified: false),
-            \zeroConf: (\type: CheckBox, \modified: false),
-            \restrictedPath: (\type: TextField, \modified: false),
-            \initialNodeID: (\type: NumberBox, \modified: false),
-            \remoteControlVolume: (\type: CheckBox, \modified: false),
-            \memoryLocking: (\type: CheckBox, \modified: false)
+            \zeroConf:            (\type: CheckBox,  \modified: false),
+            \restrictedPath:      (\type: TextField, \modified: false),
+            \initialNodeID:       (\type: NumberBox, \modified: false),
+            \remoteControlVolume: (\type: CheckBox,  \modified: false),
+            \memoryLocking:       (\type: CheckBox,  \modified: false)
         );
-
-        specialOptions = (
-            \recChannels: (\type: NumberBox, \modified: false),
-            \recHeaderFormat: (\type: PopUpMenu, \modified: false),
-            \recSampleFormat: (\type: PopUpMenu, \modified: false)
-        );
-
         if (Server.program.asString.endsWith("supernova")) {
             advancedOptions.put(\threads, (\type: NumberBox, \modified: false))
         };
+
+        specialOptions = (
+            \recChannels:     (\type: NumberBox, \modified: false),
+            \recHeaderFormat: (\type: PopUpMenu, \modified: false),
+            \recSampleFormat: (\type: PopUpMenu, \modified: false)
+        );
 
         serverOptions = server.options;
         currentValues = ();
