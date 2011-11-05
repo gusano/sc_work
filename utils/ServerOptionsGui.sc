@@ -116,19 +116,20 @@ ServerOptionsGui {
         );
 
         advancedOptions = (
-            \maxNodes:            (\type: NumberBox, \modified: false),
-            \maxSynthDefs:        (\type: NumberBox, \modified: false),
-            \numWireBufs:         (\type: NumberBox, \modified: false),
-            \hardwareBufferSize:  (\type: NumberBox, \modified: false),
-            \protocol:            (\type: TextField, \modified: false),
-            \numRGens:            (\type: NumberBox, \modified: false),
-            \loadDefs:            (\type: CheckBox,  \modified: false),
-            \inputStreamsEnabled: (\type: TextField, \modified: false),
-            \zeroConf:            (\type: CheckBox,  \modified: false),
-            \restrictedPath:      (\type: TextField, \modified: false),
-            \initialNodeID:       (\type: NumberBox, \modified: false),
-            \remoteControlVolume: (\type: CheckBox,  \modified: false),
-            \memoryLocking:       (\type: CheckBox,  \modified: false)
+            \maxNodes:             (\type: NumberBox, \modified: false),
+            \maxSynthDefs:         (\type: NumberBox, \modified: false),
+            \numWireBufs:          (\type: NumberBox, \modified: false),
+            \hardwareBufferSize:   (\type: NumberBox, \modified: false),
+            \protocol:             (\type: TextField, \modified: false),
+            \numRGens:             (\type: NumberBox, \modified: false),
+            \loadDefs:             (\type: CheckBox,  \modified: false),
+            \inputStreamsEnabled:  (\type: TextField, \modified: false),
+            \outputStreamsEnabled: (\type: TextField, \modified: false),
+            \zeroConf:             (\type: CheckBox,  \modified: false),
+            \restrictedPath:       (\type: TextField, \modified: false),
+            \initialNodeID:        (\type: NumberBox, \modified: false),
+            \remoteControlVolume:  (\type: CheckBox,  \modified: false),
+            \memoryLocking:        (\type: CheckBox,  \modified: false)
         );
 
         recordingOptions = (
@@ -145,8 +146,8 @@ ServerOptionsGui {
 
         orderedAdvancedKeys = OrderedIdentitySet[
             \maxNodes, \maxSynthDefs, \numWireBufs, \hardwareBufferSize, \protocol,
-            \loadDefs, \inputStreamsEnabled, \numRGens, \zeroConf, \restrictedPath,
-            \initialNodeID, \remoteControlVolume, \memoryLocking
+            \loadDefs, \inputStreamsEnabled, \outputStreamsEnabled, \numRGens,
+            \restrictedPath, \initialNodeID, \remoteControlVolume, \memoryLocking
         ];
 
         if (Server.program.asString.endsWith("supernova")) {
