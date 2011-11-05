@@ -61,16 +61,21 @@ ServerOptionsGui {
      * *new
      * @return super
      */
-    *new {
-        ^super.new.init()
+    *new { |server = nil|
+        ^super.new.init(server)
     }
 
     /**
      * init Initialise default server options
+     * @param Server aServer
      * @return self
-     * @TODO: add special mode (sampleRate, devices, ...)
      */
-    init {
+    init { |aServer|
+        if (aServer.notNil, {
+            server = aServer;
+        }, {
+            server = Server.default;
+        });
         simpleOptions = (
             \numAudioBusChannels: (\type: NumberBox),
             \numControlBusChannels: (\type: NumberBox),
@@ -100,7 +105,6 @@ ServerOptionsGui {
             \threads: (\type: NumberBox)
         );
 
-        server = Server.default;
         serverOptions = server.options;
         settings = ();
         currentValues = ();
