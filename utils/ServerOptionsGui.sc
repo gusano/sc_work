@@ -8,7 +8,6 @@
  * @link    http://github.com/gusano/sc_work/tree/master/utils
  *
  * @usage   g = ServerOptionsGui(s)
- * @todo    alphabetically sort options (if possible),
  */
 
 ServerOptionsGui {
@@ -37,6 +36,16 @@ ServerOptionsGui {
      * @var Dictionary specialOptions Options that are set when server is booted
      */
     var specialOptions;
+
+    /**
+     * @var OrderedIdentitySet orderedSimpleKeys Sorted simple options
+     */
+    var orderedSimpleKeys;
+
+    /**
+     * @var OrderedIdentitySet orderedAdvancedKeys Sorted advanced options
+     */
+    var orderedAdvancedKeys;
 
     /**
      * @var Dictionary currentValues
@@ -71,7 +80,7 @@ ServerOptionsGui {
     /**
      * @var Integer height Main window height
      */
-    var height = 460;
+    var height = 420;
 
 
     /**
@@ -121,15 +130,29 @@ ServerOptionsGui {
             \remoteControlVolume: (\type: CheckBox,  \modified: false),
             \memoryLocking:       (\type: CheckBox,  \modified: false)
         );
-        if (Server.program.asString.endsWith("supernova")) {
-            advancedOptions.put(\threads, (\type: NumberBox, \modified: false))
-        };
 
         specialOptions = (
             \recChannels:     (\type: NumberBox, \modified: false),
             \recHeaderFormat: (\type: PopUpMenu, \modified: false),
             \recSampleFormat: (\type: PopUpMenu, \modified: false)
         );
+
+        orderedSimpleKeys = OrderedIdentitySet[
+            \inDevice, \outDevice, \numInputBusChannels, \numOutputBusChannels,
+            \sampleRate, \blockSize, \memSize, \numAudioBusChannels,
+                \numControlBusChannels
+        ];
+
+        orderedAdvancedKeys = OrderedIdentitySet[
+            \maxNodes, \maxSynthDefs, \numWireBufs, \hardwareBufferSize, \protocol,
+            \loadDefs, \inputStreamsEnabled, \numRGens, \zeroConf, \restrictedPath,
+            \initialNodeID, \remoteControlVolume, \memoryLocking
+        ];
+
+        if (Server.program.asString.endsWith("supernova")) {
+            advancedOptions.put(\threads, (\type: NumberBox, \modified: false));
+            orderedAdvancedKeys.add(\threads);
+        };
 
         serverOptions = server.options;
         currentValues = ();
@@ -187,22 +210,33 @@ ServerOptionsGui {
     drawSettings { |options, visible = true|
         var view = View().background_(Color.new(0.58, 0.69, 0.75));
         var grid = QGridLayout();
+        var keys;
 
         view.layout_(grid);
         view.visible_(visible);
 
-        options.keys.do{ |opt, i|
+        options.switch(
+            simpleOptions,   { keys = orderedSimpleKeys },
+            advancedOptions, { keys = orderedAdvancedKeys },
+            specialOptions,  { keys = specialOptions.keys }
+        );
+
+        keys.do{ |opt, i|
             var label, guiElement, val;
 
             label = StaticText().string_(opt)
                 .stringColor_(Color.new(0.1, 0.1, 0.1));
+
             val = serverOptions.tryPerform(opt.asGetter);
+
             guiElement = options[opt][\type].new();
             guiElement.action_{ |el| options[opt][\modified] = true };
 
             grid.add(label, i, 0);
             grid.add(guiElement, i, 1);
+
             if (val.notNil, { guiElement.value_(val) });
+
             if (options == specialOptions, {
                 if (opt == \recChannels, {
                     guiElement.value_(server.recChannels)
@@ -224,6 +258,7 @@ ServerOptionsGui {
                     );
                 })
             });
+
             currentValues.add(opt -> guiElement);
         };
 
@@ -238,7 +273,7 @@ ServerOptionsGui {
         var simple = [simpleView, specialView];
 
         buttonValue.switch(
-            0, { simple.do(_.visible_(true)); advancedView.visible_(false) },
+            0, { simple.do(_.visible_(true));  advancedView.visible_(false) },
             1, { simple.do(_.visible_(false)); advancedView.visible_(true) }
         )
     }
