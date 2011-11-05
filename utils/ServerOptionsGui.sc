@@ -116,6 +116,7 @@ ServerOptionsGui {
         );
 
         advancedOptions = (
+            \verbosity:            (\type: NumberBox, \modified: false),
             \maxNodes:             (\type: NumberBox, \modified: false),
             \maxSynthDefs:         (\type: NumberBox, \modified: false),
             \numWireBufs:          (\type: NumberBox, \modified: false),
@@ -145,9 +146,10 @@ ServerOptionsGui {
         ];
 
         orderedAdvancedKeys = OrderedIdentitySet[
-            \maxNodes, \maxSynthDefs, \numWireBufs, \hardwareBufferSize, \protocol,
-            \loadDefs, \inputStreamsEnabled, \outputStreamsEnabled, \numRGens,
-            \restrictedPath, \initialNodeID, \remoteControlVolume, \memoryLocking
+            \verbosity, \maxNodes, \maxSynthDefs, \numWireBufs,
+            \hardwareBufferSize, \protocol, \loadDefs, \inputStreamsEnabled,
+            \outputStreamsEnabled, \numRGens, \restrictedPath, \initialNodeID,
+            \remoteControlVolume, \memoryLocking
         ];
 
         if (Server.program.asString.endsWith("supernova")) {
