@@ -7,7 +7,7 @@
  * @since   2011-11-04
  * @link    http://github.com/gusano/sc_work/tree/master/utils
  *
- * @todo alphabetically sort options (if possible),
+ * @todo add a server argument, alphabetically sort options (if possible),
  */
 
 ServerOptionsGui {
@@ -48,12 +48,12 @@ ServerOptionsGui {
     var w;
 
     /**
-     * @var View simpleView A composite view containing the basic settings
+     * @var View simpleView A view containing the basic settings
      */
     var simpleView;
 
     /**
-     * @var View advancedView A composite view containing the advanced settings
+     * @var View advancedView A view containing the advanced settings
      */
     var advancedView;
 
@@ -72,35 +72,32 @@ ServerOptionsGui {
      */
     init {
         simpleOptions = (
-            \numAudioBusChannels: (\type: Integer, \mode: "static"),
-            \numControlBusChannels: (\type: Integer, \mode: "static"),
-            \numInputBusChannels: (\type: Integer, \mode: "static"),
-            \numOutputBusChannels: (\type: Integer, \mode: "static"),
-            \maxNodes: (\type: Integer, \mode: "static"),
-            \maxSynthDefs: (\type: Integer, \mode: "static"),
-            \blockSize: (\type: Integer, \mode: "static"),
-            \hardwareBufferSize: (\type: Integer, \mode: "static"),
-            \memSize: (\type: Integer, \mode: "static"),
-            \numWireBufs: (\type: Integer, \mode: "static"),
-            \sampleRate: (\type: Integer, \mode: "static"),
-            \inDevice: (\type: String, \mode: "static"),
-            \outDevice: (\type: String, \mode: "static")
+            \numAudioBusChannels: (\type: NumberBox),
+            \numControlBusChannels: (\type: NumberBox),
+            \numInputBusChannels: (\type: NumberBox),
+            \numOutputBusChannels: (\type: NumberBox),
+            \maxNodes: (\type: NumberBox),
+            \maxSynthDefs: (\type: NumberBox),
+            \blockSize: (\type: NumberBox),
+            \hardwareBufferSize: (\type: NumberBox),
+            \memSize: (\type: NumberBox),
+            \numWireBufs: (\type: NumberBox),
+            \sampleRate: (\type: NumberBox),
+            \inDevice: (\type: TextField),
+            \outDevice: (\type: TextField)
         );
 
         advancedOptions = (
-            \protocol: (\type: String, \mode: "static"),
-            \numRGens: (\type: Integer, \mode: "static"),
-            \loadDefs: (\type: Boolean, \mode: "static"),
-            \inputStreamsEnabled: (\type: Boolean, \mode: "static"),
-            \blockAllocClass: (\type: Boolean, \mode: "static"),
-            // FIXME
-            //\zeroConf: (\type: "static"),
-            //\restrictedPath: (\type: "static"),
-            // FIXME special
-            //\initialNodeID: (\type: "static"),
-            \remoteControlVolume: (\type: Boolean, \mode: "static"),
-            \memoryLocking: (\type: Boolean, \mode: "static")//,
-            //\threads: (\type: "static")
+            \protocol: (\type: TextField),
+            \numRGens: (\type: NumberBox),
+            \loadDefs: (\type: CheckBox),
+            \inputStreamsEnabled: (\type: TextField),
+            \zeroConf: (\type: CheckBox),
+            \restrictedPath: (\type: TextField),
+            \initialNodeID: (\type: NumberBox),
+            \remoteControlVolume: (\type: CheckBox),
+            \memoryLocking: (\type: CheckBox),
+            \threads: (\type: NumberBox)
         );
 
         server = Server.default;
@@ -129,8 +126,7 @@ ServerOptionsGui {
         simpleView = this.drawSettings(simpleOptions);
         advancedView = this.drawSettings(advancedOptions, false);
         cancelButton = Button(w, Rect(30, 380, 150, 20))
-            .states_([["Cancel"]])
-            .action_({ w.close });
+            .states_([["Cancel"]]).action_({ w.close });
         applyButton = Button(w, Rect(220, 380, 150, 20))
             .states_([["Apply (reboot server)"]]).action_{ this.applyChanges() };
     }
@@ -143,14 +139,17 @@ ServerOptionsGui {
     drawSettings { |options, visible = true|
         var view = View(w, Rect(0, 50, 400, 330));
         view.addFlowLayout;
+        view.visible_(visible);
+
         options.keys.do{ |opt|
-            var textField, val;
-            val= serverOptions.tryPerform(opt.asGetter).asString;
+            var guiElement, val;
+            val = serverOptions.tryPerform(opt.asGetter);
             StaticText(view, 200@20).string_(opt);
-            textField = TextField(view, 180@20).string_(val);
-            currentValues.add(opt -> textField);
+            guiElement = options[opt][\type].new(view);
+            if (val.notNil, { guiElement.value_(val) });
+            currentValues.add(opt -> guiElement);
         };
-        if (visible.not, { view.visible_(visible) });
+
         ^view
     }
 
