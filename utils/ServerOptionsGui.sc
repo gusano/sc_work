@@ -33,11 +33,6 @@ ServerOptionsGui {
     var advancedOptions;
 
     /**
-     * @var Dictionary settings
-     */
-    var settings;
-
-    /**
      * @var Dictionary currentValues
      */
     var currentValues;
@@ -88,38 +83,36 @@ ServerOptionsGui {
             server = Server.default;
         });
         simpleOptions = (
-            \numAudioBusChannels: (\type: NumberBox),
-            \numControlBusChannels: (\type: NumberBox),
-            \numInputBusChannels: (\type: NumberBox),
-            \numOutputBusChannels: (\type: NumberBox),
-            \maxNodes: (\type: NumberBox),
-            \maxSynthDefs: (\type: NumberBox),
-            \blockSize: (\type: NumberBox),
-            \hardwareBufferSize: (\type: NumberBox),
-            \memSize: (\type: NumberBox),
-            \numWireBufs: (\type: NumberBox),
-            \sampleRate: (\type: NumberBox),
-            \inDevice: (\type: TextField),
-            \outDevice: (\type: TextField)
+            \numAudioBusChannels: (\type: NumberBox, \modified: false),
+            \numControlBusChannels: (\type: NumberBox, \modified: false),
+            \numInputBusChannels: (\type: NumberBox, \modified: false),
+            \numOutputBusChannels: (\type: NumberBox, \modified: false),
+            \maxNodes: (\type: NumberBox, \modified: false),
+            \maxSynthDefs: (\type: NumberBox, \modified: false),
+            \blockSize: (\type: NumberBox, \modified: false),
+            \hardwareBufferSize: (\type: NumberBox, \modified: false),
+            \memSize: (\type: NumberBox, \modified: false),
+            \numWireBufs: (\type: NumberBox, \modified: false),
+            \sampleRate: (\type: NumberBox, \modified: false),
+            \inDevice: (\type: TextField, \modified: false),
+            \outDevice: (\type: TextField, \modified: false)
         );
 
         advancedOptions = (
-            \protocol: (\type: TextField),
-            \numRGens: (\type: NumberBox),
-            \loadDefs: (\type: CheckBox),
-            \inputStreamsEnabled: (\type: TextField),
-            \zeroConf: (\type: CheckBox),
-            \restrictedPath: (\type: TextField),
-            \initialNodeID: (\type: NumberBox),
-            \remoteControlVolume: (\type: CheckBox),
-            \memoryLocking: (\type: CheckBox),
-            \threads: (\type: NumberBox)
+            \protocol: (\type: TextField, \modified: false),
+            \numRGens: (\type: NumberBox, \modified: false),
+            \loadDefs: (\type: CheckBox, \modified: false),
+            \inputStreamsEnabled: (\type: TextField, \modified: false),
+            \zeroConf: (\type: CheckBox, \modified: false),
+            \restrictedPath: (\type: TextField, \modified: false),
+            \initialNodeID: (\type: NumberBox, \modified: false),
+            \remoteControlVolume: (\type: CheckBox, \modified: false),
+            \memoryLocking: (\type: CheckBox, \modified: false),
+            \threads: (\type: NumberBox, \modified: false)
         );
 
         serverOptions = server.options;
-        settings = ();
         currentValues = ();
-        this.prepareSettings();
         this.drawGui();
     }
 
@@ -178,6 +171,7 @@ ServerOptionsGui {
                 .stringColor_(Color.new(0.1, 0.1, 0.1));
             val = serverOptions.tryPerform(opt.asGetter);
             guiElement = options[opt][\type].new();
+            guiElement.action_{ |el| options[opt][\modified] = true };
 
             grid.add(label, i, 0);
             grid.add(guiElement, i, 1);
@@ -200,22 +194,20 @@ ServerOptionsGui {
     }
 
     /**
-     * applyChanges
+     * applyChanges Only apply modified settings and reboot the server
      */
     applyChanges {
-        currentValues.keys.do{ |key|
-            [key, currentValues[key].value].postcs
-        }
+        [simpleOptions, advancedOptions].do{ |options|
+            options.keys.do{ |key|
+                if (options[key][\modified], {
+                    server.options.tryPerform(
+                        key.asSetter, currentValues[key].value
+                    );
+                })
+            }
+        };
+        server.reboot;
+        w.close;
     }
 
-    /**
-     * prepareSettings
-     */
-    prepareSettings {
-        [simpleOptions, advancedOptions].do{ |options|
-            options.keys.do{ |opt|
-                settings.add(opt -> serverOptions.tryPerform(opt.asGetter))
-            }
-        }
-    }
 }
