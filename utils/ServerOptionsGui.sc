@@ -140,8 +140,6 @@ ServerOptionsGui {
         cancelFunction = {};
 
         simpleViewOptions = (
-            \inDevice:              (\type: PopUpMenu, \modified: nil, \pos: 0),
-            \outDevice:             (\type: PopUpMenu, \modified: nil, \pos: 1),
             \numInputBusChannels:   (\type: NumberBox, \modified: nil, \pos: 2),
             \numOutputBusChannels:  (\type: NumberBox, \modified: nil, \pos: 3),
             \sampleRate:            (\type: NumberBox, \modified: nil, \pos: 4),
@@ -149,6 +147,22 @@ ServerOptionsGui {
             \memSize:               (\type: NumberBox, \modified: nil, \pos: 6),
             \numAudioBusChannels:   (\type: NumberBox, \modified: nil, \pos: 7),
             \numControlBusChannels: (\type: NumberBox, \modified: nil, \pos: 8)
+        );
+        Platform.case(
+            \osx, {
+                simpleViewOptions.add(
+                    \inDevice -> (\type: PopUpMenu, \modified: nil, \pos: 0)
+                );
+                simpleViewOptions.add(
+                    \outDevice -> (\type: PopUpMenu, \modified: nil, \pos: 1)
+                );
+            },
+            \linux, {
+                simpleViewOptions.add(
+                    \device -> (\type: PopUpMenu, \modified: nil, \pos: 1)
+                );
+                height = height - 30;
+            }
         );
 
         advancedViewOptions = (
@@ -291,23 +305,33 @@ ServerOptionsGui {
 
             if (options == simpleOptions, {
                 this.setSimpleOption(key, guiElement)
-            }, {
-                if (key == \inDevice, {
-                    try { this.setPopupItems(
-                        guiElement, ServerOptions.inDevices, serverOptions.inDevice
-                        )}
-                });
-                if (key == \outDevice, {
-                    try { this.setPopupItems(
-                        guiElement, ServerOptions.outDevices, serverOptions.outDevice
-                    )}
-                });
+            });
+            if (key == \device or: {key == \inDevice} or: {key == \outDevice}, {
+                this.setAudioDevice(key, guiElement);
             });
 
             currentValues.add(key -> guiElement);
         };
 
         ^view
+    }
+
+    /**
+     * setAudioDevice
+     */
+    setAudioDevice {
+        // TODO
+        //Platform.case
+        /*
+        try { this.setPopupItems(
+            guiElement, ServerOptions.inDevices, serverOptions.inDevice
+        )}
+        if (key == \outDevice, {
+            try { this.setPopupItems(
+                guiElement, ServerOptions.outDevices, serverOptions.outDevice
+            )}
+        });
+        */
     }
 
     /**
