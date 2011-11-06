@@ -222,19 +222,25 @@ ServerOptionsGui {
 
     /**
      * drawGui
-     * Draw the main GUI: one QVLayout containing one QHLayout for the top
+     * Draw the main GUI: one QVLayout containing one QVLayout for the top
      * button, one QGridLayout for the options and one QHLayout for the
      * bottom buttons.
      */
     drawGui {
         var mainView, topLayout, bottomLayout;
-        var infoText, modeButton, applyButton, cancelButton;
+        var infoText, linkButton, modeButton, applyButton, cancelButton;
         var blue, red;
 
         blue = Color(0.58, 0.69, 0.75);
         red = Color(0.75, 0.58, 0.69);
 
-        infoText = StaticText().string_("Options for" + server.name);
+        infoText = StaticText().string_("Options for" + server.name)
+            .font_(Font(Font.defaultSansFace, 18, true))
+            .align_(\center);
+
+        linkButton = Button()
+            .states_([["ServerOptions help"]])
+            .action_{ HelpBrowser.openHelpFor("ServerOptions") };
 
         modeButton = Button().states_([
             ["Advanced settings"], ["Simple settings"]
@@ -251,7 +257,9 @@ ServerOptionsGui {
         applyButton = Button().states_([["Apply"]])
             .action_{ this.applyAction() };
 
-        topLayout = QHLayout(infoText, modeButton);
+        topLayout = QVLayout(
+            infoText, QHLayout(linkButton, modeButton)
+        );
         bottomLayout = QHLayout(cancelButton, applyButton);
 
         mainView = View(parent);
@@ -268,8 +276,8 @@ ServerOptionsGui {
      */
     getRebootText {
         ^StaticText().string_(
-            "These options will only be set after rebooting the server"
-        ).background_(Color.red(1, 0.2))
+            "These will be set after rebooting the server"
+        ).background_(Color.red(0.7, 0.2))
     }
 
     /**
@@ -299,14 +307,14 @@ ServerOptionsGui {
         );
 
         if (options != simpleOptions, {
-            grid.addSpanning(title, 0, 0, 2, 2)
+            grid.addSpanning(title, 0, 0, 1, 2)
         });
 
         keys.do{ |opt, i|
             var label, guiElement, val, row;
 
             if (options != simpleOptions, {
-                row = i + 2
+                row = i + 1
             }, {
                 row = i
             });
