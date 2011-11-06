@@ -91,7 +91,7 @@ ServerOptionsGui {
     /**
      * @var Integer height Main view height
      */
-    var height = 480;
+    var height = 520;
 
     /**
      * @var Boolean standalone If no parent is given, we run in standalone mode
@@ -162,8 +162,8 @@ ServerOptionsGui {
             \blockSize:             (\type: NumberBox, \modified: nil),
             \memSize:               (\type: NumberBox, \modified: nil),
             \sampleRate:            (\type: NumberBox, \modified: nil),
-            \inDevice:              (\type: TextField, \modified: nil),
-            \outDevice:             (\type: TextField, \modified: nil)
+            \inDevice:              (\type: PopUpMenu, \modified: nil),
+            \outDevice:             (\type: PopUpMenu, \modified: nil)
         );
 
         advancedViewOptions = (
@@ -277,7 +277,7 @@ ServerOptionsGui {
      */
     getRebootText {
         ^StaticText().string_(
-            "These will be set after rebooting the server"
+            "These options will only be set after rebooting the server"
         ).background_(Color.red(0.7, 0.2))
     }
 
@@ -308,14 +308,14 @@ ServerOptionsGui {
         );
 
         if (options != simpleOptions, {
-            grid.addSpanning(title, 0, 0, 1, 2)
+            grid.addSpanning(title, 0, 0, 2, 2)
         });
 
         keys.do{ |opt, i|
             var label, guiElement, val, row;
 
             if (options != simpleOptions, {
-                row = i + 1
+                row = i + 2
             }, {
                 row = i
             });
@@ -335,6 +335,13 @@ ServerOptionsGui {
 
             if (options == simpleOptions, {
                 this.setSimpleOption(opt, guiElement)
+            }, {
+                if (opt == \inDevice, {
+                    guiElement.items_(ServerOptions.inDevices)
+                });
+                if (opt == \outDevice, {
+                    guiElement.items_(ServerOptions.outDevices)
+                });
             });
 
             currentValues.add(opt -> guiElement);
