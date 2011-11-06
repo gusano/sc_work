@@ -23,19 +23,25 @@ ServerOptionsGui {
     var serverOptions;
 
     /**
-     * @var Dictionary simpleOptions
+     * @var Dictionary simpleViewOptions
+     */
+    var simpleViewOptions;
+
+    /**
+     * @var Dictionary advancedViewOptions
+     */
+    var advancedViewOptions;
+
+    /**
+     * @var Dictionary simpleOptions Options that do not need Server to be
+     *      rebooted to be set
      */
     var simpleOptions;
 
     /**
-     * @var Dictionary advancedOptions
+     * @var OrderedIdentitySet orderedKeys Sorted options
      */
-    var advancedOptions;
-
-    /**
-     * @var Dictionary recordingOptions Options that are set when server is booted
-     */
-    var recordingOptions;
+    var orderedKeys;
 
     /**
      * @var OrderedIdentitySet orderedSimpleKeys Sorted simple options
@@ -73,7 +79,7 @@ ServerOptionsGui {
     var advancedView;
 
     /**
-     * @var View specialView A view containing the special recording settings
+     * @var View specialView A view containing the simple options
      */
     var specialView;
 
@@ -148,41 +154,46 @@ ServerOptionsGui {
         applyFunction = {};
         cancelFunction = {};
 
+        simpleViewOptions = (
+            \numAudioBusChannels:   NumberBox,
+            \numControlBusChannels: NumberBox,
+            \numInputBusChannels:   NumberBox,
+            \numOutputBusChannels:  NumberBox,
+            \blockSize:             NumberBox,
+            \memSize:               NumberBox,
+            \sampleRate:            NumberBox,
+            \inDevice:              TextField,
+            \outDevice:             TextField
+        );
+
+        advancedViewOptions = (
+            \verbosity:            NumberBox,
+            \maxNodes:             NumberBox,
+            \maxSynthDefs:         NumberBox,
+            \numWireBufs:          NumberBox,
+            \hardwareBufferSize:   NumberBox,
+            \protocol:             TextField,
+            \numRGens:             NumberBox,
+            \loadDefs:             CheckBox,
+            \inputStreamsEnabled:  TextField,
+            \outputStreamsEnabled: TextField,
+            \zeroConf:             CheckBox,
+            \restrictedPath:       TextField,
+            \initialNodeID:        NumberBox,
+            \remoteControlVolume:  CheckBox,
+            \memoryLocking:        CheckBox
+        );
+
         simpleOptions = (
-            \numAudioBusChannels:   (\type: NumberBox, \modified: false),
-            \numControlBusChannels: (\type: NumberBox, \modified: false),
-            \numInputBusChannels:   (\type: NumberBox, \modified: false),
-            \numOutputBusChannels:  (\type: NumberBox, \modified: false),
-            \blockSize:             (\type: NumberBox, \modified: false),
-            \memSize:               (\type: NumberBox, \modified: false),
-            \sampleRate:            (\type: NumberBox, \modified: false),
-            \inDevice:              (\type: TextField, \modified: false),
-            \outDevice:             (\type: TextField, \modified: false)
+            \latency:         NumberBox,
+            \recChannels:     NumberBox,
+            \recHeaderFormat: PopUpMenu,
+            \recSampleFormat: PopUpMenu
         );
 
-        advancedOptions = (
-            \verbosity:            (\type: NumberBox, \modified: false),
-            \maxNodes:             (\type: NumberBox, \modified: false),
-            \maxSynthDefs:         (\type: NumberBox, \modified: false),
-            \numWireBufs:          (\type: NumberBox, \modified: false),
-            \hardwareBufferSize:   (\type: NumberBox, \modified: false),
-            \protocol:             (\type: TextField, \modified: false),
-            \numRGens:             (\type: NumberBox, \modified: false),
-            \loadDefs:             (\type: CheckBox,  \modified: false),
-            \inputStreamsEnabled:  (\type: TextField, \modified: false),
-            \outputStreamsEnabled: (\type: TextField, \modified: false),
-            \zeroConf:             (\type: CheckBox,  \modified: false),
-            \restrictedPath:       (\type: TextField, \modified: false),
-            \initialNodeID:        (\type: NumberBox, \modified: false),
-            \remoteControlVolume:  (\type: CheckBox,  \modified: false),
-            \memoryLocking:        (\type: CheckBox,  \modified: false)
-        );
-
-        recordingOptions = (
-            \recChannels:     (\type: NumberBox, \modified: false),
-            \recHeaderFormat: (\type: PopUpMenu, \modified: false),
-            \recSampleFormat: (\type: PopUpMenu, \modified: false)
-        );
+        orderedKeys = OrderedIdentitySet[
+            \latency, \recChannels, \recHeaderFormat, \recSampleFormat
+        ];
 
         orderedSimpleKeys = OrderedIdentitySet[
             \inDevice, \outDevice, \numInputBusChannels, \numOutputBusChannels,
@@ -198,7 +209,9 @@ ServerOptionsGui {
         ];
 
         if (Server.program.asString.endsWith("supernova")) {
-            advancedOptions.put(\threads, (\type: NumberBox, \modified: false));
+            advancedViewOptions.put(
+                \threads, (\type: NumberBox, \modified: false)
+            );
             orderedAdvancedKeys.add(\threads);
         };
 
@@ -209,8 +222,9 @@ ServerOptionsGui {
 
     /**
      * drawGui
-     * Draw the main GUI: one QVLayout containing one QHLayout for the top button,
-     * one QGridLayout for the options and one QHLayout for the bottom buttons.
+     * Draw the main GUI: one QVLayout containing one QHLayout for the top
+     * button, one QGridLayout for the options and one QHLayout for the
+     * bottom buttons.
      */
     drawGui {
         var mainView, topLayout, bottomLayout;
@@ -224,9 +238,9 @@ ServerOptionsGui {
             this.swapView(butt.value)
         });
 
-        simpleView = this.drawSettings(simpleOptions);
-        specialView = this.drawSettings(recordingOptions);
-        advancedView = this.drawSettings(advancedOptions, false);
+        simpleView = this.drawSettings(simpleViewOptions);
+        specialView = this.drawSettings(simpleOptions);
+        advancedView = this.drawSettings(advancedViewOptions, false);
 
         cancelButton = Button().states_([["Cancel"]])
             .action_({ this.cancelAction });
@@ -258,9 +272,9 @@ ServerOptionsGui {
         view.visible_(visible);
 
         options.switch(
-            simpleOptions,    { keys = orderedSimpleKeys },
-            advancedOptions,  { keys = orderedAdvancedKeys },
-            recordingOptions, { keys = recordingOptions.keys }
+            simpleViewOptions,   { keys = orderedSimpleKeys },
+            advancedViewOptions, { keys = orderedAdvancedKeys },
+            simpleOptions,       { keys = orderedKeys }
         );
 
         keys.do{ |opt, i|
@@ -271,16 +285,15 @@ ServerOptionsGui {
 
             val = serverOptions.tryPerform(opt.asGetter);
 
-            guiElement = options[opt][\type].new();
-            guiElement.action_{ options[opt][\modified] = true };
+            guiElement = options[opt].new();
 
             grid.add(label, i, 0);
             grid.add(guiElement, i, 1);
 
             if (val.notNil, { guiElement.value_(val) });
 
-            if (options == recordingOptions, {
-                this.setRecordingOption(opt, guiElement)
+            if (options == simpleOptions, {
+                this.setSimpleOption(opt, guiElement)
             });
 
             currentValues.add(opt -> guiElement);
@@ -290,12 +303,13 @@ ServerOptionsGui {
     }
 
     /**
-     * setRecordingOption Special case for server recording settings
+     * setSimpleOption Special case for server simple settings
      * @param Symbol option
      * @param mixed  GUI element
      */
-    setRecordingOption { |option, element|
+    setSimpleOption { |option, element|
         option.switch(
+            \latency, { element.value_(server.latency) },
             \recChannels, { element.value_(server.recChannels) },
             \recHeaderFormat, {
                 element.items_(this.getHeaderFormats());
@@ -344,7 +358,7 @@ ServerOptionsGui {
      * applyAction
      */
     applyAction {
-        [simpleOptions, advancedOptions].do{ |options|
+        [simpleViewOptions, advancedViewOptions].do{ |options|
             options.keys.do{ |key|
                 server.options.tryPerform(
                     key.asSetter, currentValues[key].value
@@ -352,7 +366,7 @@ ServerOptionsGui {
             }
         };
 
-        recordingOptions.keys.do{ |key|
+        simpleOptions.keys.do{ |key|
             var value;
             if (key == \recHeaderFormat or: { key == \recSampleFormat }, {
                 value = currentValues[key].item;
