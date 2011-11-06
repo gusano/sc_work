@@ -53,9 +53,14 @@ ServerOptionsGui {
     var currentValues;
 
     /**
-     * @var Window w The main GUI window
+     * @var mixed parent The parent GUI
      */
-    var <w;
+    var <parent;
+
+    /**
+     * @var Rect bounds Main View bounds
+     */
+    var <>bounds;
 
     /**
      * @var View simpleView A view containing the basic settings
@@ -73,35 +78,54 @@ ServerOptionsGui {
     var specialView;
 
     /**
-     * @var Integer width Main window width
+     * @var Integer width Main view width
      */
     var width = 300;
 
     /**
-     * @var Integer height Main window height
+     * @var Integer height Main view height
      */
     var height = 420;
 
 
     /**
      * *new
-     * @return super
+     * @param Server server
+     * @param mixed  parent The parent container
+     * @param Rect   bounds
+     * @return self
      */
-    *new { |server = nil|
-        ^super.new.init(server)
+    *new { |server, parent, bounds|
+        ^super.new.init(server, parent, bounds)
     }
 
     /**
      * init Initialise default server options
-     * @param Server aServer
+     * @param Server serverArg
+     * @param mixed  parentArg
+     * @param Rect   boundsArg
      * @return self
      */
-    init { |aServer|
-        if (aServer.notNil, {
-            server = aServer;
+    init { |serverArg, parentArg, boundsArg|
+
+        server = serverArg ?? Server.default;
+
+        if (parentArg.isNil, {
+            parent = Window.new("Server Options").front.bounds_(
+                Rect(
+                    (Window.screenBounds.width / 2) - (width / 2),
+                    (Window.screenBounds.height / 2) - (height / 2),
+                    width,
+                    height
+                )
+            )
         }, {
-            server = Server.default;
+            parent = parentArg
         });
+
+        bounds = boundsArg ?? Rect(
+            0, 0, parent.bounds.width, parent.bounds.height
+        );
 
         simpleOptions = (
             \numAudioBusChannels:   (\type: NumberBox, \modified: false),
@@ -168,7 +192,7 @@ ServerOptionsGui {
      * one QGridLayout for the options and one QHLayout for the bottom buttons.
      */
     drawGui {
-        var topLayout, bottomLayout;
+        var mainView, topLayout, bottomLayout;
         var infoText, modeButton, applyButton, cancelButton;
 
         infoText = StaticText().string_("Options for" + server.name);
@@ -183,22 +207,16 @@ ServerOptionsGui {
         specialView = this.drawSettings(recordingOptions);
         advancedView = this.drawSettings(advancedOptions, false);
 
-        cancelButton = Button().states_([["Cancel"]]).action_({ w.close });
+        cancelButton = Button().states_([["Cancel"]])
+            .action_({ /*parent.close*/ });
         applyButton = Button().states_([["Apply (reboot server)"]])
             .action_{ this.applyChanges() };
 
         topLayout = QHLayout(infoText, modeButton);
         bottomLayout = QHLayout(cancelButton, applyButton);
 
-        w = Window.new("Server Options").front;
-        w.bounds_(
-            Rect(
-                (Window.screenBounds.width / 2) - (width / 2),
-                (Window.screenBounds.height / 2) - (height / 2),
-                width,
-                height
-            )
-        ).layout_(
+        mainView = View(parent);
+        mainView.bounds_(bounds).layout_(
             QVLayout(
                 topLayout, specialView, simpleView, advancedView, bottomLayout
             )
@@ -317,7 +335,7 @@ ServerOptionsGui {
         };
 
         server.reboot;
-        w.close;
+        //parent.close;
     }
 
     /**
