@@ -91,7 +91,7 @@ ServerOptionsGui {
     /**
      * @var Integer height Main view height
      */
-    var height = 420;
+    var height = 480;
 
     /**
      * @var Boolean standalone If no parent is given, we run in standalone mode
@@ -229,6 +229,10 @@ ServerOptionsGui {
     drawGui {
         var mainView, topLayout, bottomLayout;
         var infoText, modeButton, applyButton, cancelButton;
+        var blue, red;
+
+        blue = Color(0.58, 0.69, 0.75);
+        red = Color(0.75, 0.58, 0.69);
 
         infoText = StaticText().string_("Options for" + server.name);
 
@@ -238,9 +242,9 @@ ServerOptionsGui {
             this.swapView(butt.value)
         });
 
-        simpleView = this.drawSettings(simpleViewOptions);
-        specialView = this.drawSettings(simpleOptions);
-        advancedView = this.drawSettings(advancedViewOptions, false);
+        specialView = this.drawSettings(simpleOptions, blue);
+        simpleView = this.drawSettings(simpleViewOptions, red);
+        advancedView = this.drawSettings(advancedViewOptions, red, false);
 
         cancelButton = Button().states_([["Cancel"]])
             .action_({ this.cancelAction });
@@ -259,26 +263,53 @@ ServerOptionsGui {
     }
 
     /**
+     * getRebootText
+     * @return StaticText
+     */
+    getRebootText {
+        ^StaticText().string_(
+            "These options will only be set after rebooting the server"
+        ).background_(Color.red(1, 0.2))
+    }
+
+    /**
      * drawSettings Draws the settings and their corresponding values
      * @param Dictionary options
+     * @param Color      color
      * @param boolean    visible
      */
-    drawSettings { |options, visible = true|
-        var view = View().background_(Color.new(0.58, 0.69, 0.75));
+    drawSettings { |options, color, visible = true|
+        var view = View().background_(color);
         var grid = QGridLayout();
-        var keys;
+        var keys, title;
 
         view.layout_(grid);
         view.visible_(visible);
 
         options.switch(
-            simpleViewOptions,   { keys = orderedSimpleKeys },
-            advancedViewOptions, { keys = orderedAdvancedKeys },
-            simpleOptions,       { keys = orderedKeys }
+            simpleOptions, { keys = orderedKeys },
+            simpleViewOptions, {
+                keys = orderedSimpleKeys;
+                title = this.getRebootText();
+            },
+            advancedViewOptions, {
+                keys = orderedAdvancedKeys;
+                title = this.getRebootText();
+            }
         );
 
+        if (options != simpleOptions, {
+            grid.addSpanning(title, 0, 0, 2, 2)
+        });
+
         keys.do{ |opt, i|
-            var label, guiElement, val;
+            var label, guiElement, val, row;
+
+            if (options != simpleOptions, {
+                row = i + 2
+            }, {
+                row = i
+            });
 
             label = StaticText().string_(opt)
                 .stringColor_(Color.new(0.1, 0.1, 0.1));
@@ -287,8 +318,8 @@ ServerOptionsGui {
 
             guiElement = options[opt].new();
 
-            grid.add(label, i, 0);
-            grid.add(guiElement, i, 1);
+            grid.add(label, row, 0);
+            grid.add(guiElement, row, 1);
 
             if (val.notNil, { guiElement.value_(val) });
 
