@@ -86,7 +86,7 @@ ServerOptionsGui {
     /**
      * @var Integer width Main view width
      */
-    var width = 300;
+    var width = 340;
 
     /**
      * @var Integer height Main view height
@@ -337,10 +337,20 @@ ServerOptionsGui {
                 this.setSimpleOption(opt, guiElement)
             }, {
                 if (opt == \inDevice, {
-                    guiElement.items_(ServerOptions.inDevices)
+                    try {
+                        guiElement.items_(ServerOptions.inDevices);
+                        guiElement.value_(
+                            ServerOptions.inDevices.indexOf(server.inDevice)
+                        )
+                    }
                 });
                 if (opt == \outDevice, {
-                    guiElement.items_(ServerOptions.outDevices)
+                    try {
+                        guiElement.items_(ServerOptions.outDevices);
+                        guiElement.value_(
+                            ServerOptions.outDevices.indexOf(server.outDevice)
+                        )
+                    }
                 });
             });
 
@@ -409,21 +419,13 @@ ServerOptionsGui {
         [simpleViewOptions, advancedViewOptions].do{ |options|
             options.keys.do{ |key|
                 if (options[key][\modified].notNil, {
-                    server.options.tryPerform(
-                        key.asSetter, currentValues[key].value
-                    )
+                    this.setServerOption(key, options[key][\type])
                 });
             }
         };
 
         simpleOptions.keys.do{ |key|
-            var value;
-            if (key == \recHeaderFormat or: { key == \recSampleFormat }, {
-                value = currentValues[key].item;
-            }, {
-                value = currentValues[key].value;
-            });
-            server.tryPerform(key.asSetter, value);
+            this.setServerOption(key, simpleOptions[key][\type]);
         };
 
         if (standalone.notNil, {
@@ -431,6 +433,23 @@ ServerOptionsGui {
         }, {
             applyFunction.value()
         })
+    }
+
+    /**
+     * setServerOption
+     * @param Symbol option
+     * @param mixed  type
+     */
+    setServerOption { |option, type|
+        if (type == PopUpMenu, {
+            server.options.tryPerform(
+                option.asSetter, currentValues[option].item
+            )
+        }, {
+            server.options.tryPerform(
+                option.asSetter, currentValues[option].value
+            )
+        });
     }
 
     /**
