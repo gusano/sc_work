@@ -93,6 +93,12 @@ ServerOptionsGui {
     var standalone;
 
     /**
+     * @var Function applyFunction Function called when clicking Apply
+     *      This is only called when not in standalone mode
+     */
+    var <>applyFunction;
+
+    /**
      * @var Function cancelFunction Function called when clicking Cancel
      *      This is only called when not in standalone mode
      */
@@ -139,6 +145,7 @@ ServerOptionsGui {
             0, 0, parent.bounds.width, parent.bounds.height
         );
 
+        applyFunction = {};
         cancelFunction = {};
 
         simpleOptions = (
@@ -223,8 +230,8 @@ ServerOptionsGui {
 
         cancelButton = Button().states_([["Cancel"]])
             .action_({ this.cancelAction });
-        applyButton = Button().states_([["Apply (reboot server)"]])
-            .action_{ this.applyChanges() };
+        applyButton = Button().states_([["Apply"]])
+            .action_{ this.applyAction() };
 
         topLayout = QHLayout(infoText, modeButton);
         bottomLayout = QHLayout(cancelButton, applyButton);
@@ -334,18 +341,14 @@ ServerOptionsGui {
     }
 
     /**
-     * applyChanges
-     * Only apply modified settings for all options (except recording options
-     * which are set anyway) and reboot the server
+     * applyAction
      */
-    applyChanges {
+    applyAction {
         [simpleOptions, advancedOptions].do{ |options|
             options.keys.do{ |key|
-                if (options[key][\modified], {
-                    server.options.tryPerform(
-                        key.asSetter, currentValues[key].value
-                    );
-                })
+                server.options.tryPerform(
+                    key.asSetter, currentValues[key].value
+                )
             }
         };
 
@@ -359,8 +362,11 @@ ServerOptionsGui {
             server.tryPerform(key.asSetter, value);
         };
 
-        server.reboot;
-        //parent.close;
+        if (standalone.notNil, {
+            parent.close
+        }, {
+            applyFunction.value()
+        })
     }
 
     /**
