@@ -87,6 +87,17 @@ ServerOptionsGui {
      */
     var height = 420;
 
+    /**
+     * @var Boolean standalone If no parent is given, we run in standalone mode
+     */
+    var standalone;
+
+    /**
+     * @var Function cancelFunction Function called when clicking Cancel
+     *      This is only called when not in standalone mode
+     */
+    var <>cancelFunction;
+
 
     /**
      * *new
@@ -118,7 +129,8 @@ ServerOptionsGui {
                     width,
                     height
                 )
-            )
+            );
+            standalone = true;
         }, {
             parent = parentArg
         });
@@ -126,6 +138,8 @@ ServerOptionsGui {
         bounds = boundsArg ?? Rect(
             0, 0, parent.bounds.width, parent.bounds.height
         );
+
+        cancelFunction = {};
 
         simpleOptions = (
             \numAudioBusChannels:   (\type: NumberBox, \modified: false),
@@ -208,7 +222,7 @@ ServerOptionsGui {
         advancedView = this.drawSettings(advancedOptions, false);
 
         cancelButton = Button().states_([["Cancel"]])
-            .action_({ /*parent.close*/ });
+            .action_({ this.cancelAction });
         applyButton = Button().states_([["Apply (reboot server)"]])
             .action_{ this.applyChanges() };
 
@@ -306,6 +320,17 @@ ServerOptionsGui {
             0, { simple.do(_.visible_(true));  advancedView.visible_(false) },
             1, { simple.do(_.visible_(false)); advancedView.visible_(true) }
         )
+    }
+
+    /**
+     * cancelAction
+     */
+    cancelAction {
+        if (standalone.notNil, {
+            parent.close
+        }, {
+            this.cancelFunction.value()
+        })
     }
 
     /**
