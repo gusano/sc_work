@@ -155,40 +155,41 @@ ServerOptionsGui {
         cancelFunction = {};
 
         simpleViewOptions = (
-            \numAudioBusChannels:   NumberBox,
-            \numControlBusChannels: NumberBox,
-            \numInputBusChannels:   NumberBox,
-            \numOutputBusChannels:  NumberBox,
-            \blockSize:             NumberBox,
-            \memSize:               NumberBox,
-            \sampleRate:            NumberBox,
-            \inDevice:              TextField,
-            \outDevice:             TextField
+            \numAudioBusChannels:   (\type: NumberBox, \modified: nil),
+            \numControlBusChannels: (\type: NumberBox, \modified: nil),
+            \numInputBusChannels:   (\type: NumberBox, \modified: nil),
+            \numOutputBusChannels:  (\type: NumberBox, \modified: nil),
+            \blockSize:             (\type: NumberBox, \modified: nil),
+            \memSize:               (\type: NumberBox, \modified: nil),
+            \sampleRate:            (\type: NumberBox, \modified: nil),
+            \inDevice:              (\type: TextField, \modified: nil),
+            \outDevice:             (\type: TextField, \modified: nil)
         );
 
         advancedViewOptions = (
-            \verbosity:            NumberBox,
-            \maxNodes:             NumberBox,
-            \maxSynthDefs:         NumberBox,
-            \numWireBufs:          NumberBox,
-            \hardwareBufferSize:   NumberBox,
-            \protocol:             TextField,
-            \numRGens:             NumberBox,
-            \loadDefs:             CheckBox,
-            \inputStreamsEnabled:  TextField,
-            \outputStreamsEnabled: TextField,
-            \zeroConf:             CheckBox,
-            \restrictedPath:       TextField,
-            \initialNodeID:        NumberBox,
-            \remoteControlVolume:  CheckBox,
-            \memoryLocking:        CheckBox
+            \verbosity:            (\type: NumberBox, \modified: nil),
+            \maxNodes:             (\type: NumberBox, \modified: nil),
+            \maxSynthDefs:         (\type: NumberBox, \modified: nil),
+            \numWireBufs:          (\type: NumberBox, \modified: nil),
+            \hardwareBufferSize:   (\type: NumberBox, \modified: nil),
+            \protocol:             (\type: TextField, \modified: nil),
+            \numRGens:             (\type: NumberBox, \modified: nil),
+            \loadDefs:             (\type: CheckBox,  \modified: nil),
+            \inputStreamsEnabled:  (\type: TextField, \modified: nil),
+            \outputStreamsEnabled: (\type: TextField, \modified: nil),
+            \zeroConf:             (\type: CheckBox,  \modified: nil),
+            \restrictedPath:       (\type: TextField, \modified: nil),
+            \initialNodeID:        (\type: NumberBox, \modified: nil),
+            \remoteControlVolume:  (\type: CheckBox,  \modified: nil),
+            \memoryLocking:        (\type: CheckBox,  \modified: nil),
+            \zeroConf:             (\type: CheckBox,  \modified: nil)
         );
 
         simpleOptions = (
-            \latency:         NumberBox,
-            \recChannels:     NumberBox,
-            \recHeaderFormat: PopUpMenu,
-            \recSampleFormat: PopUpMenu
+            \latency:         (\type: NumberBox),
+            \recChannels:     (\type: NumberBox),
+            \recHeaderFormat: (\type: PopUpMenu),
+            \recSampleFormat: (\type: PopUpMenu)
         );
 
         orderedKeys = OrderedIdentitySet[
@@ -205,7 +206,7 @@ ServerOptionsGui {
             \verbosity, \maxNodes, \maxSynthDefs, \numWireBufs,
             \hardwareBufferSize, \protocol, \loadDefs, \inputStreamsEnabled,
             \outputStreamsEnabled, \numRGens, \restrictedPath, \initialNodeID,
-            \remoteControlVolume, \memoryLocking
+            \remoteControlVolume, \memoryLocking, \zeroConf
         ];
 
         if (Server.program.asString.endsWith("supernova")) {
@@ -324,7 +325,8 @@ ServerOptionsGui {
 
             val = serverOptions.tryPerform(opt.asGetter);
 
-            guiElement = options[opt].new();
+            guiElement = options[opt][\type].new()
+                .action_{ options[opt][\modified] = true };
 
             grid.add(label, row, 0);
             grid.add(guiElement, row, 1);
@@ -399,9 +401,11 @@ ServerOptionsGui {
     applyAction {
         [simpleViewOptions, advancedViewOptions].do{ |options|
             options.keys.do{ |key|
-                server.options.tryPerform(
-                    key.asSetter, currentValues[key].value
-                )
+                if (options[key][\modified].notNil, {
+                    server.options.tryPerform(
+                        key.asSetter, currentValues[key].value
+                    )
+                });
             }
         };
 
