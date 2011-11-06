@@ -39,21 +39,6 @@ ServerOptionsGui {
     var simpleOptions;
 
     /**
-     * @var OrderedIdentitySet orderedKeys Sorted options
-     */
-    var orderedKeys;
-
-    /**
-     * @var OrderedIdentitySet orderedSimpleKeys Sorted simple options
-     */
-    var orderedSimpleKeys;
-
-    /**
-     * @var OrderedIdentitySet orderedAdvancedKeys Sorted advanced options
-     */
-    var orderedAdvancedKeys;
-
-    /**
      * @var Dictionary currentValues
      */
     var currentValues;
@@ -155,65 +140,47 @@ ServerOptionsGui {
         cancelFunction = {};
 
         simpleViewOptions = (
-            \numAudioBusChannels:   (\type: NumberBox, \modified: nil),
-            \numControlBusChannels: (\type: NumberBox, \modified: nil),
-            \numInputBusChannels:   (\type: NumberBox, \modified: nil),
-            \numOutputBusChannels:  (\type: NumberBox, \modified: nil),
-            \blockSize:             (\type: NumberBox, \modified: nil),
-            \memSize:               (\type: NumberBox, \modified: nil),
-            \sampleRate:            (\type: NumberBox, \modified: nil),
-            \inDevice:              (\type: PopUpMenu, \modified: nil),
-            \outDevice:             (\type: PopUpMenu, \modified: nil)
+            \inDevice:              (\type: PopUpMenu, \modified: nil, \pos: 0),
+            \outDevice:             (\type: PopUpMenu, \modified: nil, \pos: 1),
+            \numInputBusChannels:   (\type: NumberBox, \modified: nil, \pos: 2),
+            \numOutputBusChannels:  (\type: NumberBox, \modified: nil, \pos: 3),
+            \sampleRate:            (\type: NumberBox, \modified: nil, \pos: 4),
+            \blockSize:             (\type: NumberBox, \modified: nil, \pos: 5),
+            \memSize:               (\type: NumberBox, \modified: nil, \pos: 6),
+            \numAudioBusChannels:   (\type: NumberBox, \modified: nil, \pos: 7),
+            \numControlBusChannels: (\type: NumberBox, \modified: nil, \pos: 8)
         );
 
         advancedViewOptions = (
-            \verbosity:            (\type: NumberBox, \modified: nil),
-            \maxNodes:             (\type: NumberBox, \modified: nil),
-            \maxSynthDefs:         (\type: NumberBox, \modified: nil),
-            \numWireBufs:          (\type: NumberBox, \modified: nil),
-            \hardwareBufferSize:   (\type: NumberBox, \modified: nil),
-            \protocol:             (\type: TextField, \modified: nil),
-            \numRGens:             (\type: NumberBox, \modified: nil),
-            \loadDefs:             (\type: CheckBox,  \modified: nil),
-            \inputStreamsEnabled:  (\type: TextField, \modified: nil),
-            \outputStreamsEnabled: (\type: TextField, \modified: nil),
-            \zeroConf:             (\type: CheckBox,  \modified: nil),
-            \restrictedPath:       (\type: TextField, \modified: nil),
-            \initialNodeID:        (\type: NumberBox, \modified: nil),
-            \remoteControlVolume:  (\type: CheckBox,  \modified: nil),
-            \memoryLocking:        (\type: CheckBox,  \modified: nil),
-            \zeroConf:             (\type: CheckBox,  \modified: nil)
+            \verbosity:            (\type: NumberBox, \modified: nil, \pos: 0),
+            \maxNodes:             (\type: NumberBox, \modified: nil, \pos: 1),
+            \maxSynthDefs:         (\type: NumberBox, \modified: nil, \pos: 2),
+            \numWireBufs:          (\type: NumberBox, \modified: nil, \pos: 3),
+            \hardwareBufferSize:   (\type: NumberBox, \modified: nil, \pos: 4),
+            \protocol:             (\type: TextField, \modified: nil, \pos: 5),
+            \loadDefs:             (\type: CheckBox,  \modified: nil, \pos: 6),
+            \inputStreamsEnabled:  (\type: TextField, \modified: nil, \pos: 7),
+            \outputStreamsEnabled: (\type: TextField, \modified: nil, \pos: 8),
+            \numRGens:             (\type: NumberBox, \modified: nil, \pos: 9),
+            \restrictedPath:       (\type: TextField, \modified: nil, \pos: 10),
+            \initialNodeID:        (\type: NumberBox, \modified: nil, \pos: 11),
+            \remoteControlVolume:  (\type: CheckBox,  \modified: nil, \pos: 12),
+            \memoryLocking:        (\type: CheckBox,  \modified: nil, \pos: 13),
+            \zeroConf:             (\type: CheckBox,  \modified: nil, \pos: 14)
         );
 
         simpleOptions = (
-            \latency:         (\type: NumberBox),
-            \recChannels:     (\type: NumberBox),
-            \recHeaderFormat: (\type: PopUpMenu),
-            \recSampleFormat: (\type: PopUpMenu)
+            \latency:         (\type: NumberBox, \pos: 0),
+            \recChannels:     (\type: NumberBox, \pos: 1),
+            \recHeaderFormat: (\type: PopUpMenu, \pos: 2),
+            \recSampleFormat: (\type: PopUpMenu, \pos: 3)
         );
 
-        orderedKeys = OrderedIdentitySet[
-            \latency, \recChannels, \recHeaderFormat, \recSampleFormat
-        ];
-
-        orderedSimpleKeys = OrderedIdentitySet[
-            \inDevice, \outDevice, \numInputBusChannels, \numOutputBusChannels,
-            \sampleRate, \blockSize, \memSize, \numAudioBusChannels,
-            \numControlBusChannels
-        ];
-
-        orderedAdvancedKeys = OrderedIdentitySet[
-            \verbosity, \maxNodes, \maxSynthDefs, \numWireBufs,
-            \hardwareBufferSize, \protocol, \loadDefs, \inputStreamsEnabled,
-            \outputStreamsEnabled, \numRGens, \restrictedPath, \initialNodeID,
-            \remoteControlVolume, \memoryLocking, \zeroConf
-        ];
 
         if (Server.program.asString.endsWith("supernova")) {
             advancedViewOptions.put(
-                \threads, (\type: NumberBox, \modified: false)
+                \threads, (\type: NumberBox, \modified: false, \pos: 15)
             );
-            orderedAdvancedKeys.add(\threads);
         };
 
         serverOptions = server.options;
@@ -249,9 +216,9 @@ ServerOptionsGui {
             this.swapView(butt.value)
         });
 
-        specialView = this.drawSettings(simpleOptions, blue);
-        simpleView = this.drawSettings(simpleViewOptions, red);
-        advancedView = this.drawSettings(advancedViewOptions, red, false);
+        specialView = this.getView(simpleOptions, blue);
+        simpleView = this.getView(simpleViewOptions, red, true);
+        advancedView = this.getView(advancedViewOptions, red, true, false);
 
         cancelButton = Button().states_([["Cancel"]])
             .action_({ this.cancelAction });
@@ -282,51 +249,40 @@ ServerOptionsGui {
     }
 
     /**
-     * drawSettings Draws the settings and their corresponding values
+     * getView Assign different options to a View
      * @param Dictionary options
      * @param Color      color
+     * @param boolean    hasTitle
      * @param boolean    visible
      */
-    drawSettings { |options, color, visible = true|
+    getView { |options, color, hasTitle = false, visible = true|
         var view = View().background_(color);
         var grid = QGridLayout();
-        var keys, title;
+        var title, rowStart = 0;
 
         view.layout_(grid);
         view.visible_(visible);
 
-        options.switch(
-            simpleOptions, { keys = orderedKeys },
-            simpleViewOptions, {
-                keys = orderedSimpleKeys;
-                title = this.getRebootText();
-            },
-            advancedViewOptions, {
-                keys = orderedAdvancedKeys;
-                title = this.getRebootText();
-            }
-        );
-
-        if (options != simpleOptions, {
+        if (hasTitle, {
+            title = this.getRebootText();
+            rowStart = 2;
             grid.addSpanning(title, 0, 0, 2, 2)
         });
 
-        keys.do{ |opt, i|
-            var label, guiElement, val, row;
+        options.keys.do{ |key|
+            var option, label, guiElement, val, row;
 
-            if (options != simpleOptions, {
-                row = i + 2
-            }, {
-                row = i
-            });
+            option = options[key];
 
-            label = StaticText().string_(opt)
+            row = rowStart + option[\pos];
+
+            label = StaticText().string_(key)
                 .stringColor_(Color.new(0.1, 0.1, 0.1));
 
-            val = serverOptions.tryPerform(opt.asGetter);
+            val = serverOptions.tryPerform(key.asGetter);
 
-            guiElement = options[opt][\type].new()
-                .action_{ options[opt][\modified] = true };
+            guiElement = option[\type].new()
+                .action_{ option[\modified] = true };
 
             grid.add(label, row, 0);
             grid.add(guiElement, row, 1);
@@ -334,27 +290,21 @@ ServerOptionsGui {
             if (val.notNil, { guiElement.value_(val) });
 
             if (options == simpleOptions, {
-                this.setSimpleOption(opt, guiElement)
+                this.setSimpleOption(key, guiElement)
             }, {
-                if (opt == \inDevice, {
-                    try {
-                        guiElement.items_(ServerOptions.inDevices);
-                        guiElement.value_(
-                            ServerOptions.inDevices.indexOf(serverOptions.inDevice)
-                        )
-                    }
+                if (key == \inDevice, {
+                    try { this.setPopupItems(
+                        guiElement, ServerOptions.inDevices, serverOptions.inDevice
+                        )}
                 });
-                if (opt == \outDevice, {
-                    try {
-                        guiElement.items_(ServerOptions.outDevices);
-                        guiElement.value_(
-                            ServerOptions.outDevices.indexOf(serverOptions.outDevice)
-                        )
-                    }
+                if (key == \outDevice, {
+                    try { this.setPopupItems(
+                        guiElement, ServerOptions.outDevices, serverOptions.outDevice
+                    )}
                 });
             });
 
-            currentValues.add(opt -> guiElement);
+            currentValues.add(key -> guiElement);
         };
 
         ^view
@@ -370,12 +320,12 @@ ServerOptionsGui {
             \latency, { element.value_(server.latency) },
             \recChannels, { element.value_(server.recChannels) },
             \recHeaderFormat, {
-                this.setPopupOption(
+                this.setPopupItems(
                     element, this.getHeaderFormats, server.recHeaderFormat
                 )
             },
             \recSampleFormat, {
-                this.setPopupOption(
+                this.setPopupItems(
                     element, this.getSampleFormats, server.recSampleFormat
                 )
             }
@@ -383,12 +333,12 @@ ServerOptionsGui {
     }
 
     /**
-     * setPopupOption
+     * setPopupItems
      * @param PopUpMenu popup
      * @param Array     items
      * @param mixed     value
      */
-    setPopupOption { |popup, items, value|
+    setPopupItems { |popup, items, value|
         var array = items.collect(_.asSymbol);
         popup.items_(items);
         popup.value_(array.indexOf(value.asSymbol));
