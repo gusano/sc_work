@@ -340,7 +340,7 @@ ServerOptionsGui {
                     try {
                         guiElement.items_(ServerOptions.inDevices);
                         guiElement.value_(
-                            ServerOptions.inDevices.indexOf(server.inDevice)
+                            ServerOptions.inDevices.indexOf(serverOptions.inDevice)
                         )
                     }
                 });
@@ -348,7 +348,7 @@ ServerOptionsGui {
                     try {
                         guiElement.items_(ServerOptions.outDevices);
                         guiElement.value_(
-                            ServerOptions.outDevices.indexOf(server.outDevice)
+                            ServerOptions.outDevices.indexOf(serverOptions.outDevice)
                         )
                     }
                 });
