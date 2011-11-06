@@ -370,22 +370,28 @@ ServerOptionsGui {
             \latency, { element.value_(server.latency) },
             \recChannels, { element.value_(server.recChannels) },
             \recHeaderFormat, {
-                element.items_(this.getHeaderFormats());
-                element.value_(
-                    this.getHeaderFormats().indexOf(
-                        server.recHeaderFormat.asSymbol
-                    )
+                this.setPopupOption(
+                    element, this.getHeaderFormats, server.recHeaderFormat
                 )
             },
             \recSampleFormat, {
-                element.items_(this.getSampleFormats());
-                element.value_(
-                    this.getSampleFormats().indexOf(
-                        server.recSampleFormat.asSymbol
-                    )
+                this.setPopupOption(
+                    element, this.getSampleFormats, server.recSampleFormat
                 )
             }
         )
+    }
+
+    /**
+     * setPopupOption
+     * @param PopUpMenu popup
+     * @param Array     items
+     * @param mixed     value
+     */
+    setPopupOption { |popup, items, value|
+        var array = items.collect(_.asSymbol);
+        popup.items_(items);
+        popup.value_(array.indexOf(value.asSymbol));
     }
 
     /**
@@ -419,13 +425,13 @@ ServerOptionsGui {
         [simpleViewOptions, advancedViewOptions].do{ |options|
             options.keys.do{ |key|
                 if (options[key][\modified].notNil, {
-                    this.setServerOption(key, options[key][\type])
+                    this.setServerOption(server.options, key, options[key][\type])
                 });
             }
         };
 
         simpleOptions.keys.do{ |key|
-            this.setServerOption(key, simpleOptions[key][\type]);
+            this.setServerOption(server, key, simpleOptions[key][\type]);
         };
 
         if (standalone.notNil, {
@@ -437,17 +443,18 @@ ServerOptionsGui {
 
     /**
      * setServerOption
-     * @param Symbol option
+     * @param mixed  options Server or Server.options
+     * @param Symbol key
      * @param mixed  type
      */
-    setServerOption { |option, type|
+    setServerOption { |options, key, type|
         if (type == PopUpMenu, {
-            server.options.tryPerform(
-                option.asSetter, currentValues[option].item
+            options.tryPerform(
+                key.asSetter, currentValues[key].item.asString
             )
         }, {
-            server.options.tryPerform(
-                option.asSetter, currentValues[option].value
+            options.tryPerform(
+                key.asSetter, currentValues[key].value
             )
         });
     }
