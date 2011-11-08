@@ -140,14 +140,15 @@ ServerOptionsGui {
         cancelFunction = {};
 
         simpleViewOptions = (
-            \numInputBusChannels:   (\type: NumberBox, \modified: nil, \pos: 2),
-            \numOutputBusChannels:  (\type: NumberBox, \modified: nil, \pos: 3),
-            \sampleRate:            (\type: NumberBox, \modified: nil, \pos: 4),
-            \blockSize:             (\type: NumberBox, \modified: nil, \pos: 5),
-            \memSize:               (\type: NumberBox, \modified: nil, \pos: 6),
-            \numAudioBusChannels:   (\type: NumberBox, \modified: nil, \pos: 7),
-            \numControlBusChannels: (\type: NumberBox, \modified: nil, \pos: 8)
+            \numInputBusChannels:        (\type: NumberBox, \modified: nil, \pos: 2),
+            \numOutputBusChannels:       (\type: NumberBox, \modified: nil, \pos: 3),
+            \sampleRate:                 (\type: NumberBox, \modified: nil, \pos: 4),
+            \blockSize:                  (\type: NumberBox, \modified: nil, \pos: 5),
+            \memSize:                    (\type: NumberBox, \modified: nil, \pos: 6),
+            \numPrivateAudioBusChannels: (\type: NumberBox, \modified: nil, \pos: 7),
+            \numControlBusChannels:      (\type: NumberBox, \modified: nil, \pos: 8)
         );
+        // TODO Win support
         Platform.case(
             \osx, {
                 simpleViewOptions.add(
@@ -280,7 +281,7 @@ ServerOptionsGui {
         if (hasTitle, {
             title = this.getRebootText();
             rowStart = 2;
-            grid.addSpanning(title, 0, 0, 2, 2)
+            grid.addSpanning(title, 0, 0, rowStart, 2)
         });
 
         options.keys.do{ |key|
@@ -320,7 +321,7 @@ ServerOptionsGui {
      * setAudioDevice
      */
     setAudioDevice {
-        // TODO
+        // TODO: use jack_lsp on linux and SC_JACK_SERVER...
         //Platform.case
         /*
         try { this.setPopupItems(
