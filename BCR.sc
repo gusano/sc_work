@@ -168,7 +168,7 @@ BCR : MIDIKtl {
      * @return self
      */
     addAction{ |ctlKey, action|
-        var newKey = defaults['BCR'][ctlKey];
+        var newKey = defaults[this.class][ctlKey];
         ktlDict.add(newKey -> action);
     }
 
@@ -238,7 +238,7 @@ BCR : MIDIKtl {
      * @return self
      */
     sendCtlValue { |ctlName, val|
-        var chanCtl = this.ccKeyToChanCtl(defaults['BCR'][ctlName]);
+        var chanCtl = this.ccKeyToChanCtl(defaults[this.class][ctlName]);
         midiOut.control(chanCtl[0], chanCtl[1], val);
     }
 
@@ -284,7 +284,7 @@ BCR : MIDIKtl {
         ccSelector = this.getCCNumForKey(ccKey);
         offsetChar = offset.asString.drop(2).at(0).asString;
         offsetNr   = offset.asString.drop(3).asInteger;
-        ctlKeyName = defaults['BCR'][ccKey];
+        ctlKeyName = defaults[this.class][ccKey];
         ccNewNames = this.incrementCCNames(
             nodeParams.size, offsetNr, offsetChar
         );
@@ -292,7 +292,7 @@ BCR : MIDIKtl {
         func  = { |num, val|
             // TODO presets
             //var theKey;
-            //theKey= defaults['BCR'].findKeyForValue(("0_"++num).asSymbol);
+            //theKey= defaults[this.class].findKeyForValue(("0_"++num).asSymbol);
             if (val > 0, {
                 pairs.do{ |pair| this.mapToNodeParams(node, pair) };
                 //this.managePreset(theKey, node, pairs);
@@ -496,7 +496,7 @@ BCR : MIDIKtl {
      * @return Integer
     */
     getCCNumForKey { |key|
-        ^defaults['BCR'][key].asString.drop(2).asInteger;
+        ^defaults[this.class][key].asString.drop(2).asInteger;
     }
 
     /**
@@ -552,7 +552,7 @@ BCR : MIDIKtl {
      * @return self
      */
     *makeDefaults {
-        defaults.put('BCR', BCR.getDefaults);
+        defaults.put(this.class, BCR.getDefaults);
     }
 
     /**
