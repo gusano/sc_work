@@ -281,7 +281,7 @@ ServerOptionsGui {
         if (hasTitle, {
             title = this.getRebootText();
             rowStart = 2;
-            grid.addSpanning(title, 0, 0, rowStart, 2)
+            grid.addSpanning(title, 0, 0, rowStart, 3)
         });
 
         options.keys.do{ |key|
@@ -299,16 +299,19 @@ ServerOptionsGui {
             guiElement = option[\type].new()
                 .action_{ option[\modified] = true };
 
-            grid.add(label, row, 0);
-            grid.add(guiElement, row, 1);
+            if (key == \device or: {key == \inDevice} or: {key == \outDevice}, {
+                grid.add(label, row, 0);
+                grid.addSpanning(guiElement, row, 1, 1, 2);
+                this.setAudioDevice(key, guiElement);
+            }, {
+                grid.addSpanning(label, row, 0, 1, 2);
+                grid.add(guiElement, row, 2);
+            });
 
             if (val.notNil, { guiElement.value_(val) });
 
             if (options == simpleOptions, {
                 this.setSimpleOption(key, guiElement)
-            });
-            if (key == \device or: {key == \inDevice} or: {key == \outDevice}, {
-                this.setAudioDevice(key, guiElement);
             });
 
             currentValues.add(key -> guiElement);
