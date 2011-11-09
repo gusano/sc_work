@@ -1,40 +1,26 @@
 /**
- * @file    BCR.sc
- * @desc    Use Behringer BCR2000 with SuperCollider.
+ * @file    PocketDial.sc
+ * @desc    Use Doepfer Pocket Dial with SuperCollider.
  * @author  Yvan Volochine <yvan.volochine@gmail.com>
  * @license http://www.gnu.org/licenses/gpl-3.0.txt
  * @version 0.1
- * @since   2011-09-19
+ * @since   2011-11-09
  * @link    http://github.com/gusano/sc_work/tree/master/MIDI
- *
- * @todo presets,
  */
-/*
-    Notes:
-    - NEEDS JITMIDIKtl quark !
-    - suports only endless mode (preset 00101010)
-    History:
-    - 20101204:
-      - better handling of params update (no more defer)
-      - added ascii view of params (because NdefGui is broken with Qt and I *don't* wanna go back to heavy-on-my-poor-cpu SwingOSC)
-    - 20101105:
-      - fixed delta ccVal bug and added args to mapTo()
-      - now remove unused (yvan volochine)
-      - still could be *much better*
-    - 20101104 - started rewrite (yvan volochine)
-    - 20101101 - mapTo() totally rewritten in hurry (yvan volochine)
-    TODO:
-    - make it better
-    - refactor
-    - rewrite non-endless part (probably no time for that =)
-    - remove already used before re-assigning
-    - ability to map several nodes to a bank
-*/
 
-PocketDialKtl : MIDIKtl {
+PocketDial : MIDIKtl {
+
+    /**
+     * @var bool verbose
+     */
     classvar <>verbose = false;
 
-    var <>softWithin = 0.05, <lastVals;// for normal mode
+    /**
+     * @var Dictionary ccDict Store all moved CCs
+     */
+    var <ccDict;
+
+    var <>softWithin = 0.05, <lastVals; // for normal mode
     var <>endless;
 
     var <orderedNames;
@@ -57,7 +43,6 @@ PocketDialKtl : MIDIKtl {
     }
 
     free {
-        ccresp.remove;
         ccDict.clear;
         proxyParamsDict.clear;
         resetDict.clear;
@@ -186,22 +171,34 @@ PocketDialKtl : MIDIKtl {
     }
 
 
+    /**
+     * *makeDefaults Initialize PocketDial CC params
+     */
     *makeDefaults {
-        /*  all midi chan 1,
-        bank 1:  0 - 15, bank 2: 16 - 31, bank 3: 32 - 47, bank 4: 48 - 63
-        */
+        defaults.put('PocketDial', PocketDial.getDefaults);
+    }
 
-        // just one bank of knobs
-        defaults.put(this, (
-            kn01: '1_0',  kn02: '1_1',  kn03: '1_2',  kn04: '1_3',  kn05: '1_4',  kn06: '1_5',  kn07: '1_6',  kn08: '1_7',
-            kn09: '1_8',  kn10: '1_9',  kn11: '1_10', kn12: '1_11', kn13: '1_12', kn14: '1_13', kn15: '1_14', kn16: '1_15',
-            kn17: '1_16', kn18: '1_17', kn19: '1_18', kn20: '1_19', kn21: '1_20', kn22: '1_21', kn23: '1_22', kn24: '1_23',
-            kn25: '1_24', kn26: '1_25', kn27: '1_26', kn28: '1_27', kn29: '1_28', kn30: '1_29', kn31: '1_30', kn32: '1_31',
-            kn33: '1_32', kn34: '1_33', kn35: '1_34', kn36: '1_35', kn37: '1_36', kn38: '1_37', kn39: '1_38', kn40: '1_39',
-            kn41: '1_40', kn42: '1_41', kn43: '1_42', kn44: '1_43', kn45: '1_44', kn46: '1_45', kn47: '1_46', kn48: '1_47',
-            kn49: '1_48', kn50: '1_49', kn51: '1_50', kn52: '1_51', kn53: '1_52', kn54: '1_53', kn55: '1_54', kn56: '1_55',
-            kn57: '1_56', kn58: '1_57', kn59: '1_58', kn60: '1_59', kn61: '1_60', kn62: '1_61', kn63: '1_62', kn64: '1_63'
-        ));
+    /**
+     * *getDefaults Stores the CC numbers in 'defaults' Dictionary.
+     * @return Dictionary
+     */
+    *getDefaults {
+        /**
+         * @desc All on midi chan 0,
+         *       CC numbers:  0-15, 16-31, 32-47, 48-63
+         */
+        var dict = ();
+        var banks = ["A", "B", "C", "D"];
+
+        4.do { |i|
+            16.do { |ii|
+                dict.put(
+                    ("kn" ++ banks[i] ++ (ii + 1)).asSymbol,
+                    ("0_" ++ (ii + (i * 16))).asSymbol
+                )
+            }
+        };
+        ^dict
     }
 
 }
