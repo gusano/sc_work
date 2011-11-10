@@ -29,17 +29,41 @@ PocketDial : MIDIKtl {
 
     var lastTime;
 
-    *new { |srcID, ccDict, endless = true|
-        ^super.newCopyArgs(srcID, ccDict).endless_(endless).init;
+
+    *new { |srcName, endless = true|
+        ^super.new.init(srcName).endless_(endless).init;
     }
 
-    init {
-        super.init;
-        orderedNames = defaults[this.class].keys.asArray.sort;
+    /**
+     * init
+     * Prepare MIDI in/out.
+     * If no name is given for the destination, we assume it's
+     * the same as the one given for source.
+     *
+     * @param String srcName Name pattern for MIDI source
+     */
+    init { |srcName|
+        this.checkDependencies();
+        this.findMidiIn(srcName);
+        super.init();
+        ccDict = ccDict ?? ();
         proxyParamsDict = ();
         resetDict = ();
         orderedParamsDict = ();
         lastTime = Main.elapsedTime;
+        //nodeDict = nodeDict ?? ();
+    }
+
+    /**
+     * checkDependencies
+     * @throws PocketDialError if dependencies are not installed
+     */
+    checkDependencies {
+        if ('Ktl'.asClass.isNil, {
+            PocketDialError(
+                "Required 'Ktl' quark is not installed."
+            ).throw
+        })
     }
 
     free {
@@ -47,24 +71,88 @@ PocketDial : MIDIKtl {
         proxyParamsDict.clear;
         resetDict.clear;
         orderedParamsDict.clear;
+        super.free;
     }
 
+    /**
+     * findMidiIn
+     * Finds the MIDIIn device via name pattern. If several
+     * sources contain this name, only the first one is used.
+     *
+     * @param String srcName Name pattern for MIDI source
+     * @return self
+     */
+    findMidiIn { |srcName|
+        MIDIClient.sources.do{ |x|
+            block { |break|
+                if (x.device.containsi(srcName), {
+                    srcID = x.uid;
+                    ("\n\PocketDial MIDIIn: %\n".format(x.device)).post;
+                    break.();
+                })
+            }
+        }
+    }
+
+    /**
+     * addAction Add a function to a specific CC
+     *
+     * @param Symbol   ctlKey 'knE1'
+     * @param Function action The function to be executed
+     * @return self
+     */
+    addAction{ |ctlKey, action|
+        ktlDict.add(ctlKey -> action);
+        "added action for %".format(ctlKey).postcs;
+    }
+
+    /**
+     * mapToNodeParams
+     *
+     * @param mixed node
+     * @param Array pairs The name|params of the node
+     * @return self
+     */
+    mapToNodeParams { |node ... pairs|
+        pairs.do { |pair|
+            var ctl, param, spec, func;
+            #ctl, param = pair;
+            this.checkParamSpec(param);
+            func = { |ctl, val|
+                var mappedVal;
+                mappedVal = param.asSpec.map(val / 127);
+                node.set(param, mappedVal);
+                "%: % -> %\n".format(
+                    node.cs, param, mappedVal.round(1e-3)
+                ).post;
+            };
+            this.addAction(ctl, func)
+        };
+    }
+
+    /**
+     * update TODO: document
+     * @param NodeProxy proxy
+     * @param Integer   bank
+     * @param Integer   offset
+     */
     update { |proxy, bank=nil, offset=nil|
         var pairs = proxy.getKeysValues;
         var dict = proxyParamsDict[proxy] ?? ();
 
+        try {
         // store ordered params
         orderedParamsDict.add(proxy -> pairs.flop[0]);
 
         if (bank.notNil, { /* 1st update */
             pairs.do{|p, i|
-                var cckey = orderedNames[bank-1 * 16 + offset + i - 1];
+                var ccKey = this.getCCKey(i, bank, offset);
                 // remove old key if any
                 if (dict[p[0]].notNil, {
                     this.mapCC(dict[p[0]][\key], nil);
                     dict[p[0]][\key] = nil;
                 });
-                dict.add( p[0] -> (\key: cckey, \val: p[1]) );
+                dict.add( p[0] -> (\key: ccKey, \val: p[1]) );
             };
             proxyParamsDict[proxy] = dict;
         }, {
@@ -74,35 +162,58 @@ PocketDial : MIDIKtl {
             }
         });
         resetDict[proxy] = true;
+        } {|e| e.errorString.warn }
     }
 
-    mapTo { |proxy, bank=1, offset=1, params=nil, stepmin=0.05, stepmax=0.5, mapVol=true|
-        var pparams, pairs;
+    /**
+     * mapTo
+     * Declare a function that will recursively assign all node params to CCs
+     *
+     * @param NodeProxy proxy   The node being controlled
+     * @param Integer   bank    One of the 4 banks
+     * @param Integer   offset
+     * @param Array     params
+     * @param Float     stepmin
+     * @param Float     stepmax
+     * @param Boolean   mapVol  Automatically assign CC16 to node volume
+     */
+    mapTo {
+        arg proxy, bank=1, offset=1, params=nil,
+            stepmin=0.05, stepmax=0.5, mapVol=true;
+
+        var pparams, pairs, maxNrOfCCs;
+
         pairs = proxy.getKeysValues;
         pparams = params ?? pairs.flop[0];
+        if (mapVol, { maxNrOfCCs = 15 }, { maxNrOfCCs = 16 });
 
-        if (pparams.size > 16, {
-            warn("Too many params!\nMaximum is 16.")
-        }, {
-            if (proxyParamsDict[proxy].isNil or: { resetDict[proxy] != true }, {
-                this.update(proxy, bank, offset)
-            });
-            pparams.do{ |p, i|
-                var cc = orderedNames[bank-1 * 16 + offset + i - 1];
-                var knob = offset + i;
-                if (p.asSpec.isNil, {
-                    warn("% doesn't have a Spec !\n% not mapped.\n".format(p, p))
-                }, {
-                    this.mapCC(cc, this.generateFunction(proxy, p, stepmin, stepmax));
-                    if (inform, { postf("mapping % on knob % - bank %\n", p, knob, bank) });
-                });
-            };
-            if (mapVol == true, {
-                this.mapVolume(proxy, 16, bank);
-            });
+        this.checkParamsSize(pparams.size);
+
+        if (proxyParamsDict[proxy].isNil or: { resetDict[proxy] != true }, {
+            this.update(proxy, bank, offset)
         });
+
+        pparams.do{ |p, i|
+            var cc = this.getCCKey(i, bank, offset);
+            var action;
+
+            if (p.asSpec.isNil, {
+                warn("% doesn't have a Spec !\n% not mapped.\n".format(p, p))
+            }, {
+                this.addAction(
+                    cc, this.generateFunction(proxy, p, stepmin, stepmax)
+                );
+                if (inform, {
+                    postf("mapping % -> %_%\n", p, bank, i + offset)
+                });
+            });
+        };
+        if (mapVol == true, { this.mapVolume(proxy, 16, bank) });
     }
 
+    /**
+     * TODO: rewrite this mess
+     */
     generateFunction { |proxy, param, stepmin, stepmax|
         var func = { |val|
             var delta, currentVal, newVal, time;
@@ -110,7 +221,8 @@ PocketDial : MIDIKtl {
             delta = val - 64;
             delta = delta * delta.abs.linlin(1, 7, stepmin, stepmax);
 
-            /* if no cc was moved for 1 second, update NodeProxy params in case they have been changed from the outside */
+            // if no cc was moved for 1 second, update NodeProxy params in case
+            // they have been changed from the outside
             if (time - lastTime > 1, {
                 resetDict.add(proxy -> false);
             });
@@ -126,10 +238,9 @@ PocketDial : MIDIKtl {
             try { proxy.set(param, newVal) };
             proxyParamsDict[proxy][param][\val] = newVal;
 
-            /*if (inform, {
-                postf("%: % -> %\n", proxy.asCompileString, param, newVal.round(1e-4))
-            });*/
-            if (inform, { this.asciiParams(proxy) });
+            if (inform, {
+                this.asciiParams(proxy, param, param.asSpec.unmap(newVal))
+            });
 
             lastTime = time;
         };
@@ -137,39 +248,53 @@ PocketDial : MIDIKtl {
     }
 
     mapVolume { |proxy, ccnr, bank=1|
-        var cc = orderedNames[bank-1 * 16 + ccnr - 1 ];
-        this.mapCC(cc, { |val|
+        var cc = this.getCCKey(ccnr, bank, 0);
+
+        this.addAction(cc, { |val|
             var delta, volume;
-            delta = val - 64;
-            delta = delta * delta.abs.linlin(1, 7, 0.05, 0.5); // bigger default step for vol
+            delta  = val - 64;
+            // use a bigger default step for volume
+            delta  = delta * delta.abs.linlin(1, 7, 0.05, 0.5);
             volume = \amp.asSpec.unmap(proxy.vol);
             volume = \amp.asSpec.map(volume + (delta / 127));
             proxy.vol_(volume);
-            if (inform, { postf("% vol -> %\n", proxy.asCompileString, volume.round(1e-4)) });
+            if (inform, {
+                this.asciiParams(proxy, 'vol', \amp.asSpec.unmap(volume))
+            });
         });
     }
 
-    asciiParams { |proxy|
-        // returns keys-params in an ascii way (no gui)
-        ("[ " ++ proxy.asCompileString ++ " ]\n").post;
-
-        orderedParamsDict[proxy].do{ |key|
-            var val = proxyParamsDict[proxy][key]['val'];
-            val = key.asSpec.unmap(val);
-            key = key.asString;
-            key = key ++ (" " ! (16 - (key.size+1)));
-            key = key.replace("[", "").replace("]", "").replace(", ", "");
-            val = (val * 20).round;
-            val = ("#"!val);
-            val = val ++ ("-"!(20 - (val.size-1)));
-            val = val.asString.replace(" ", "").replace(",", "").replace("]", "").replace("[", "");
-            (key ++ "[" ++ val ++ "]" ++ "\n").post;
-            "";
-        };
-        "\n\n\n\n".post;
-        "";
+    /**
+     * getCCKey Get CCkey corresponding to bank and offset
+     * Given a knob number, a bank and offset, find the corresponding '0_13'
+     * @param Integer nr
+     * @param Integer bank
+     * @param Integer offset
+     * @return Symbol
+     * @see makeResponder()
+     */
+    getCCKey { |nr, bank, offset=1|
+        var banks = ["A", "B", "C", "D"];
+        var key = "kn%%%".format(banks[bank - 1], offset + nr).asSymbol;
+        ^defaults['PocketDial'][key]
     }
 
+    checkParamsSize { |size|
+        var max = 15;
+        if (size > max, {
+            "Too many params!\nMaximum is %.".format(max).warn
+        });
+    }
+
+    asciiParams { |proxy, param, val|
+        var size = 13, pos, str;
+        pos = (val * size).round.asInteger;
+        str = "";
+        size.do { |i|
+            if (i < pos, { str = str ++ "|" }, { str = str ++ "." });
+        };
+        (str + param + proxy.cs).asSymbol.postcs;
+    }
 
     /**
      * *makeDefaults Initialize PocketDial CC params
@@ -179,14 +304,12 @@ PocketDial : MIDIKtl {
     }
 
     /**
-     * *getDefaults Stores the CC numbers in 'defaults' Dictionary.
+     * *getDefaults Stores the CC numbers in 'defaults' Dictionary
      * @return Dictionary
      */
     *getDefaults {
-        /**
-         * @desc All on midi chan 0,
-         *       CC numbers:  0-15, 16-31, 32-47, 48-63
-         */
+        // All on midi chan 0,
+        // CC numbers are 0-15, 16-31, 32-47, 48-63
         var dict = ();
         var banks = ["A", "B", "C", "D"];
 
@@ -201,4 +324,11 @@ PocketDial : MIDIKtl {
         ^dict
     }
 
+}
+
+
+PocketDialError : Error {
+    errorString {
+        ^"PocketDial ERROR: " ++ what
+    }
 }
