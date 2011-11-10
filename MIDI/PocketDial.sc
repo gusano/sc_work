@@ -19,6 +19,10 @@ PocketDial : MIDIKtl {
      * @var Dictionary ccDict Store all moved CCs
      */
     var <ccDict;
+    /**
+     * @var Doctionary nodeDict Used to store mapped params for a node
+     */
+    var <nodeDict;
 
     var <>softWithin = 0.05, <lastVals; // for normal mode
     var <>endless;
@@ -50,8 +54,8 @@ PocketDial : MIDIKtl {
         proxyParamsDict = ();
         resetDict = ();
         orderedParamsDict = ();
+        nodeDict = ();
         lastTime = Main.elapsedTime;
-        //nodeDict = nodeDict ?? ();
     }
 
     /**
@@ -67,11 +71,18 @@ PocketDial : MIDIKtl {
     }
 
     free {
+        this.unmapAll();
+        ktlDict.clear;
         ccDict.clear;
         proxyParamsDict.clear;
         resetDict.clear;
         orderedParamsDict.clear;
+        nodeDict.clear;
         super.free;
+    }
+
+    unmapAll {
+
     }
 
     /**
@@ -193,16 +204,22 @@ PocketDial : MIDIKtl {
             this.update(proxy, bank, offset)
         });
 
+        nodeDict[proxy] = ();
+        nodeDict[proxy][\params] = List.new();
+
         pparams.do{ |p, i|
             var cc = this.getCCKey(i, bank, offset);
             var action;
 
-            if (p.asSpec.isNil, {
-                warn("% doesn't have a Spec !\n% not mapped.\n".format(p, p))
-            }, {
+            if (i < maxNrOfCCs, {
+                if (p.asSpec.isNil, {
+                    Spec.add(p.asSymbol, [0, 127]);
+                    "% doesn't have a Spec !\nusing default\n".format(p).warn
+                });
                 this.addAction(
                     cc, this.generateFunction(proxy, p, stepmin, stepmax)
                 );
+                nodeDict[proxy][\params].add(cc);
                 if (inform, {
                     postf("mapping % -> %_%\n", p, bank, i + offset)
                 });
@@ -262,6 +279,18 @@ PocketDial : MIDIKtl {
                 this.asciiParams(proxy, 'vol', \amp.asSpec.unmap(volume))
             });
         });
+        nodeDict[proxy][\params].add(cc);
+    }
+
+    /**
+     * unmap
+     * @param NodeProxy
+     */
+    unmap { |proxy|
+        nodeDict[proxy][\params].do { |key|
+            ktlDict.removeAt(key);
+        };
+        nodeDict[proxy][\params].clear;
     }
 
     /**
@@ -293,7 +322,7 @@ PocketDial : MIDIKtl {
         size.do { |i|
             if (i < pos, { str = str ++ "|" }, { str = str ++ "." });
         };
-        (str + param + proxy.cs).asSymbol.postcs;
+        (str + param + proxy.cs ++ "\n").asSymbol.post;
     }
 
     /**
