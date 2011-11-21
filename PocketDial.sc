@@ -6,54 +6,70 @@
  * @version 0.1
  * @since   2011-11-09
  * @link    http://github.com/gusano/sc_work/tree/master/MIDI
+ * @TODO:   Implement non-endless mode
+ * @TODO:   Remove Ktl dependency ?
  */
 
 PocketDial : MIDIKtl {
 
     /**
-     * @var bool verbose
+     * @var Boolean verbose
      */
     classvar <>verbose = false;
 
     /**
-     * @var Dictionary ccDict Store all moved CCs
-     */
-    var <ccDict;
-    /**
-     * @var Doctionary nodeDict Used to store mapped params for a node
+     * @var Dictionary nodeDict Store mapped params for each NodeProxy
      */
     var <nodeDict;
 
-    var <>softWithin = 0.05, <lastVals; // for normal mode
+    /**
+     * @var Dictionary proxyParamsDict Store updated NodeProxy keys/values
+     */
+    var <proxyParamsDict;
+
+    /**
+     * @var Dictionary resetDict Store proxies that need to have params updated
+     */
+    var <resetDict;
+
+    /**
+     * @var Boolean endless Endless mode (TODO)
+     */
     var <>endless;
 
-    var <orderedNames;
-    var <proxyDict, <proxyParamsDict, <resetDict, <orderedParamsDict;
+    /**
+     * @var Boolean inform
+     */
     var <>inform = true;
 
+    /**
+     * @var Float lastTime Last time a param was changed (see updateProxyParams)
+     */
     var lastTime;
 
 
-    *new { |srcName, endless = true|
-        ^super.new.init(srcName).endless_(endless).init;
+    /**
+     * *new
+     * @param String  src     Name pattern for MIDI source/destination
+     * @param Boolean endless Endless mode (non-endless mode TODO)
+     * @return PocketDial
+     */
+    *new { |src, endless = true|
+        ^super.new.init(src).endless_(endless).init;
     }
 
     /**
-     * init
-     * Prepare MIDI in/out.
-     * If no name is given for the destination, we assume it's
-     * the same as the one given for source.
-     *
-     * @param String srcName Name pattern for MIDI source
+     * init Prepare MIDI in/out.
+     *      If no name is given for the destination,
+     *      assume it's the same as the one given for source.
+     * @param String src Name pattern for MIDI source/destination
      */
-    init { |srcName|
+    init { |src|
         this.checkDependencies();
-        this.findMidiIn(srcName);
+        this.findMidiIn(src);
         super.init();
-        ccDict = ccDict ?? ();
         proxyParamsDict = ();
         resetDict = ();
-        orderedParamsDict = ();
         nodeDict = ();
         lastTime = Main.elapsedTime;
     }
@@ -76,21 +92,16 @@ PocketDial : MIDIKtl {
     free {
         this.unmapAll();
         ktlDict.clear;
-        ccDict.clear;
         proxyParamsDict.clear;
         resetDict.clear;
-        orderedParamsDict.clear;
         nodeDict.clear;
         super.free;
     }
 
     /**
-     * findMidiIn
-     * Finds the MIDIIn device via name pattern. If several
-     * sources contain this name, only the first one is used.
-     *
+     * findMidiIn Finds the MIDIIn device via name pattern. If several
+     *            sources contain this name, only the first one is used.
      * @param String srcName Name pattern for MIDI source
-     * @return self
      */
     findMidiIn { |srcName|
         MIDIClient.sources.do{ |x|
@@ -106,10 +117,8 @@ PocketDial : MIDIKtl {
 
     /**
      * addAction Add a function to a specific CC
-     *
      * @param Symbol   ctlKey 'knE1'
      * @param Function action The function to be executed
-     * @return self
      */
     addAction{ |ctlKey, action|
         ktlDict.add(ctlKey -> action);
@@ -118,10 +127,8 @@ PocketDial : MIDIKtl {
 
     /**
      * mapToNodeParams
-     *
      * @param mixed node
      * @param Array pairs The name|params of the node
-     * @return self
      */
     mapToNodeParams { |node ... pairs|
         pairs.do { |pair|
@@ -147,15 +154,12 @@ PocketDial : MIDIKtl {
      * @param NodeProxy proxy
      * @param Integer   bank
      * @param Integer   offset
-     * @return void
      */
     updateProxyParams { |proxy, bank=nil, offset=nil|
         var pairs = proxy.getKeysValues;
         var dict  = proxyParamsDict[proxy] ?? ();
 
         try {
-            orderedParamsDict.add(proxy -> pairs.flop[0]);
-
             if (bank.notNil, { // 1st update
                 pairs.do{|p, i|
                     var ccKey = this.getCCKey(i, bank, offset);
@@ -180,14 +184,13 @@ PocketDial : MIDIKtl {
     /**
      * mapTo
      * Declare a function that will recursively assign all node params to CCs
-     *
      * @param NodeProxy proxy   The node being controlled
      * @param Integer   bank    One of the 4 banks
      * @param Integer   offset
      * @param Array     params
      * @param Float     stepmin
      * @param Float     stepmax
-     * @param Boolean   mapVol  Automatically assign CC16 to node volume
+     * @param Boolean   mapVol  Automatically assign a CC to node volume
      */
     mapTo {
         arg proxy, bank=1, offset=1, params=nil,
@@ -230,7 +233,13 @@ PocketDial : MIDIKtl {
     }
 
     /**
-     * TODO: refactor
+     * generateFunction Generate the function triggered by the CCResponder
+     * @param NodeProxy proxy
+     * @param Symbol    param
+     * @param Float     stepmin
+     * @param Float     stepmax
+     * @return Function
+     * @TODO refactor
      */
     generateFunction { |proxy, param, stepmin, stepmax|
         var func = { |val|
@@ -267,6 +276,9 @@ PocketDial : MIDIKtl {
 
     /**
      * mapVolume Map a knob (default cc 16) to proxy volume
+     * @param NodeProxy proxy
+     * @param Integer   bank
+     * @param Integer   ccnr
      */
     mapVolume { |proxy, bank=1, ccnr=16|
         var cc = this.getCCKey(ccnr, bank, 0);
@@ -319,6 +331,10 @@ PocketDial : MIDIKtl {
         ^defaults[this.class][key]
     }
 
+    /**
+     * checkParamsSize Warn if the proxy has too many params
+     * @param Integer size
+     */
     checkParamsSize { |size|
         var max = 15;
         if (size > max, {
@@ -326,6 +342,12 @@ PocketDial : MIDIKtl {
         });
     }
 
+    /**
+     * asciiParams Print param value in emacs post buffer
+     * @param NodeProxy proxy
+     * @param Symbol    param
+     * @param Integer   val
+     */
     asciiParams { |proxy, param, val|
         var size = 13, pos, str;
         pos = (val * size).round.asInteger;
