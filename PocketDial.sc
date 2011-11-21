@@ -233,7 +233,7 @@ PocketDial : MIDIKtl {
                 });
             });
         };
-        if (mapVol == true, { this.mapVolume(proxy, 16, bank) });
+        if (mapVol == true, { this.mapVolume(proxy, bank) });
     }
 
     /**
@@ -272,7 +272,10 @@ PocketDial : MIDIKtl {
         ^func;
     }
 
-    mapVolume { |proxy, ccnr, bank=1|
+    /**
+     * mapVolume Map a knob (default cc 16) to proxy volume
+     */
+    mapVolume { |proxy, bank=1, ccnr=16|
         var cc = this.getCCKey(ccnr, bank, 0);
 
         this.addAction(cc, { |val|
