@@ -6,8 +6,7 @@
  * @version 0.1
  * @since   2011-09-19
  * @link    http://github.com/gusano/sc_work/tree/master/MIDI
- *
- * @todo presets,
+ * @TODO    Add support for presets
  */
 
 BCR : MIDIKtl {
@@ -33,7 +32,7 @@ BCR : MIDIKtl {
     var <destID;
 
     /**
-     * @var bool update Enable|disable updating BCR2000
+     * @var Boolean update Enable|disable updating BCR2000
      */
     var <>update = true;
 
@@ -45,24 +44,20 @@ BCR : MIDIKtl {
 
     /**
      * *new
-     *
      * @param String srcName  Name pattern for MIDI source
      * @param String destName Name pattern for MIDI destination
-     * @return super
+     * @return BCR
      */
     *new { |srcName="bcr", destName|
         ^super.new.init(srcName, destName);
     }
 
     /**
-     * init
-     * Prepare MIDI in/out.
-     * If no name is given for the destination, we assume it's
-     * the same as the one given for source.
-     *
+     * init Prepare MIDI in/out.
+     *      If no name is given for the destination, we assume it's
+     *      the same as the one given for source.
      * @param String srcName  Name pattern for MIDI source
      * @param String destName Name pattern for MIDI destination
-     * @return self
      */
     init { |srcName, destName|
         if (destName.isNil, { destName = srcName });
@@ -76,8 +71,6 @@ BCR : MIDIKtl {
 
     /**
      * free
-     *
-     * @return self
      */
     free {
         super.free();
@@ -87,8 +80,6 @@ BCR : MIDIKtl {
 
     /**
      * checkDependencies
-     *
-     * @return self
      * @throws BCRError if dependencies are not installed
      */
     checkDependencies {
@@ -98,12 +89,9 @@ BCR : MIDIKtl {
     }
 
     /**
-     * findMidiIn
-     * Finds the MIDIIn device via name pattern. If several
-     * sources contain this name, only the first one is used.
-     *
+     * findMidiIn Finds the MIDIIn device via name pattern. If several
+     *            sources contain this name, only the first one is used.
      * @param String srcName Name pattern for MIDI source
-     * @return self
      */
     findMidiIn { |srcName|
         MIDIClient.sources.do{ |x|
@@ -118,12 +106,9 @@ BCR : MIDIKtl {
     }
 
     /**
-     * findMidiOut
-     * Finds the MIDIOut device via name pattern. If several
-     * destinations contain this name, only the first one is used.
-     *
+     * findMidiOut Finds the MIDIOut device via name pattern. If several
+     *             destinations contain this name, only the first one is used.
      * @param String destName  Name pattern for MIDI destination
-     * @return self
      */
     findMidiOut { |destName|
         block { |break|
@@ -141,8 +126,6 @@ BCR : MIDIKtl {
 
     /**
      * makeResp Main CCResponder lookup for actions to trigger
-     *
-     * @return self
      */
     makeResp {
         this.removeResp();
@@ -162,10 +145,8 @@ BCR : MIDIKtl {
 
     /**
      * addAction Add a function to a specific CC
-     *
      * @param Symbol   ctlKey 'knE1'
      * @param Function action The function to be executed
-     * @return self
      */
     addAction{ |ctlKey, action|
         var newKey = defaults[this.class][ctlKey];
@@ -174,9 +155,7 @@ BCR : MIDIKtl {
 
     /**
      * removeAction Remove a function for a CC
-     *
      * @param Symbol key '0_33'
-     * @return self
      */
     removeAction{ |key|
         ktlDict.removeAt(key.asSymbol);
@@ -184,10 +163,8 @@ BCR : MIDIKtl {
 
     /**
      * mapToNodeParams
-     *
      * @param mixed node
      * @param Array pairs The name|params of the node
-     * @return self
      */
     mapToNodeParams { |node ... pairs|
         pairs.do { |pair|
@@ -211,10 +188,8 @@ BCR : MIDIKtl {
 
     /**
      * sendFromProxy Update BCR with current node values
-     *
      * @param mixed node
      * @param Array pairs The name|params of the node
-     * @return self
      */
     sendFromProxy { |node, pairs|
         var ctlNames, params, currVals, midiVals;
@@ -232,10 +207,8 @@ BCR : MIDIKtl {
 
     /**
      * sendCtlValue Send a CCval to MIDIOut
-     *
      * @param Symbol  ctlName
      * @param Integer val
-     * @return self
      */
     sendCtlValue { |ctlName, val|
         var chanCtl = this.ccKeyToChanCtl(defaults[this.class][ctlName]);
@@ -243,10 +216,8 @@ BCR : MIDIKtl {
     }
 
     /**
-     * getNodeType
-     * Find out if the Node is a Synth or a NodeProxy.
-     * We assume that user passes a String or Symbol in case of a Synth
-     *
+     * getNodeType Find out if the Node is a Synth or a NodeProxy.
+     *             Assume that user passes a String|Symbol in case of a Synth
      * @param mixed node
      * @return mixed
      */
@@ -258,15 +229,12 @@ BCR : MIDIKtl {
     }
 
     /**
-     * mapTo
-     * Declare a function that will recursively assign all node params to CCs
-     * and which will be toggled by a given ccSelector.
-     *
+     * mapTo Declare a function that will recursively assign all node params
+     * to CCs and which will be toggled by a given ccSelector.
      * @param mixed   node   The node being controlled (SynthDef, NodeProxy, ...)
      * @param Integer id     The "column" which controls the node (8 x 4 groups)
      * @param Symbol  offset
      * @param Preset  preset TODO
-     * @return self
      * @throws BCRError if the mapping id is invalid
      * @TODO   refactor
      */
@@ -319,13 +287,10 @@ BCR : MIDIKtl {
 
     /**
      * unmap Remove node and associated volume, selector and function
-     *
-     * @param String node
-     * @return self
+     * @param Symbol node
      * @throws Warning if the selector is not found
      */
     unmap { |node|
-        if (node.isNil, { this.unmapAll; ^this });
         try {
             nodeDict[node].keys.do{ |key|
                 if (key != 'params', {
@@ -342,8 +307,6 @@ BCR : MIDIKtl {
 
     /**
      * unmapAll Unmap all nodes currently assigned
-     *
-     * @return self
      */
     unmapAll {
         nodeDict.keys.do{ |key| this.unmap(key) }
@@ -351,10 +314,8 @@ BCR : MIDIKtl {
 
     /**
      * assignVolume Assign node volume to top knob
-     *
      * @param mixed   node The node to control
      * @param Integer id   The "column" number
-     * @return self
      */
     assignVolume { |node, id|
         var volKnob = "kn%%".format(this.getGroupChar(id), id).asSymbol;
@@ -374,10 +335,8 @@ BCR : MIDIKtl {
 
     /**
      * assignToggle Assign play/stop to 1st row button
-     *
      * @param mixed   node The node to control
      * @param Integer id   The "column" number
-     * @return self
      */
     assignToggle { |node, id|
         var tglButton = "bt%%".format(this.getGroupChar(id), id).asSymbol;
@@ -400,10 +359,11 @@ BCR : MIDIKtl {
 
     /**
      * assignReset Assign reset to top knob push-mode
-     *
-     * @param mixed   node The node to control
-     * @param Integer id   The "column" number
-     * @return self
+     * @param mixed   node  The node to control
+     * @param Integer id    The "column" number
+     * @param Array   pairs
+     * @param Array   defaultParams
+     * @return nil if NodeProxy is a Synth
      */
     assignReset { |node, id, pairs, defaultparams|
         var rstButton = "tr%%".format(this.getGroupChar(id), id).asSymbol;
@@ -430,7 +390,6 @@ BCR : MIDIKtl {
 
     /**
      * getParamsValues
-     *
      * @param mixed node
      * @return Array
      */
@@ -443,7 +402,6 @@ BCR : MIDIKtl {
 
     /**
      * getSynthKeysValues
-     *
      * @paran mixed node
      * @return Array
      */
@@ -458,8 +416,6 @@ BCR : MIDIKtl {
 
     /**
      * mapped Utility method to get currently mapped nodes
-     *
-     * @return self
      */
     mapped {
         nodeDict.keys.do{ |key|
@@ -482,8 +438,6 @@ BCR : MIDIKtl {
 
     /**
      * managePreset
-     *
-     * @return
      */
     managePreset { |key, node, pairs|
         "'managePreset' is not yet imlemented".warn
@@ -491,7 +445,6 @@ BCR : MIDIKtl {
 
     /**
      * getCCNumForKey
-     *
      * @param Symbol key
      * @return Integer
     */
@@ -501,7 +454,6 @@ BCR : MIDIKtl {
 
     /**
      * getGroupChar For the 4 top encoder groups
-     *
      * @param Integer id
      * @return String
      */
@@ -511,12 +463,9 @@ BCR : MIDIKtl {
     }
 
     /**
-     * checkParamSpec
-     * Check if the param has a valid ControlSpec.
-     * If not, assign a default one to it [0, 127]
-     *
+     * checkParamSpec Check if the param has a valid ControlSpec.
+     *                If not, assign a default one to it [0, 127]
      * @param Symbol param
-     * @return self
      */
     checkParamSpec { |param|
         if (param.asSpec.isNil, {
@@ -526,10 +475,8 @@ BCR : MIDIKtl {
     }
 
     /**
-     * incrementCCNames
-     * Increment ccKeys and automatically change lettre when needed:
-     * ex: \knE6, \knE7, \knE8, \knF1, \knF2, ...
-     *
+     * incrementCCNames Increment ccKeys (automatically change symbol if needed)
+     *                  ex: \knE6, \knE7, \knE8, \knF1, \knF2, ...
      * @param Integer size       Number of times to increment
      * @param Integer offsetNr   ID of the offset
      * @param Integer offsetChar Char corresponding to the button row
@@ -548,8 +495,6 @@ BCR : MIDIKtl {
 
     /**
      * *makeDefaults Initialize BCR CC params
-     *
-     * @return self
      */
     *makeDefaults {
         defaults.put(this, BCR.getDefaults);
@@ -557,7 +502,6 @@ BCR : MIDIKtl {
 
     /**
      * *getDefaults Stores the CC numbers in 'defaults' Dictionary.
-     *
      * @return Dictionary
      */
     *getDefaults {
