@@ -305,7 +305,7 @@ PocketDial : MIDIKtl {
     getCCKey { |nr, bank, offset=1|
         var banks = ["A", "B", "C", "D"];
         var key = "kn%%%".format(banks[bank - 1], offset + nr).asSymbol;
-        ^defaults['PocketDial'][key]
+        ^defaults[this.class][key]
     }
 
     checkParamsSize { |size|
@@ -329,7 +329,7 @@ PocketDial : MIDIKtl {
      * *makeDefaults Initialize PocketDial CC params
      */
     *makeDefaults {
-        defaults.put('PocketDial', PocketDial.getDefaults);
+        defaults.put(this, PocketDial.getDefaults);
     }
 
     /**
