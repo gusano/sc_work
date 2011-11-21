@@ -70,6 +70,9 @@ PocketDial : MIDIKtl {
         })
     }
 
+    /**
+     * free
+     */
     free {
         this.unmapAll();
         ktlDict.clear;
@@ -81,6 +84,9 @@ PocketDial : MIDIKtl {
         super.free;
     }
 
+    /**
+     * unmapAll Unmap all currently mapped proxies
+     */
     unmapAll {
 
     }
@@ -142,37 +148,39 @@ PocketDial : MIDIKtl {
     }
 
     /**
-     * update TODO: document
+     * updateProxyParams Get new values for proxy params and store them.
+     *                   This turns out to be much faster than using nudgeSet
+     *                   which calls get() on a param for every new CC value.
      * @param NodeProxy proxy
      * @param Integer   bank
      * @param Integer   offset
+     * @return void
      */
-    update { |proxy, bank=nil, offset=nil|
+    updateProxyParams { |proxy, bank=nil, offset=nil|
         var pairs = proxy.getKeysValues;
-        var dict = proxyParamsDict[proxy] ?? ();
+        var dict  = proxyParamsDict[proxy] ?? ();
 
         try {
-        // store ordered params
-        orderedParamsDict.add(proxy -> pairs.flop[0]);
+            orderedParamsDict.add(proxy -> pairs.flop[0]);
 
-        if (bank.notNil, { /* 1st update */
-            pairs.do{|p, i|
-                var ccKey = this.getCCKey(i, bank, offset);
-                // remove old key if any
-                if (dict[p[0]].notNil, {
-                    this.mapCC(dict[p[0]][\key], nil);
-                    dict[p[0]][\key] = nil;
-                });
-                dict.add( p[0] -> (\key: ccKey, \val: p[1]) );
-            };
-            proxyParamsDict[proxy] = dict;
-        }, {
-            /* we just fetch the new values */
-            pairs.do{|p|
-                proxyParamsDict[proxy][p[0]][\val] = p[1]
-            }
-        });
-        resetDict[proxy] = true;
+            if (bank.notNil, { // 1st update
+                pairs.do{|p, i|
+                    var ccKey = this.getCCKey(i, bank, offset);
+                    // remove old key if any
+                    if (dict[p[0]].notNil, {
+                        this.mapCC(dict[p[0]][\key], nil);
+                        dict[p[0]][\key] = nil;
+                    });
+                    dict.add( p[0] -> (\key: ccKey, \val: p[1]) );
+                };
+                proxyParamsDict[proxy] = dict;
+            }, {
+                // just fetch the new values
+                pairs.do{|p|
+                    proxyParamsDict[proxy][p[0]][\val] = p[1]
+                }
+            });
+            resetDict[proxy] = true;
         } {|e| e.errorString.warn }
     }
 
@@ -201,7 +209,7 @@ PocketDial : MIDIKtl {
         this.checkParamsSize(pparams.size);
 
         if (proxyParamsDict[proxy].isNil or: { resetDict[proxy] != true }, {
-            this.update(proxy, bank, offset)
+            this.updateProxyParams(proxy, bank, offset)
         });
 
         nodeDict[proxy] = ();
@@ -229,7 +237,7 @@ PocketDial : MIDIKtl {
     }
 
     /**
-     * TODO: rewrite this mess
+     * TODO: refactor
      */
     generateFunction { |proxy, param, stepmin, stepmax|
         var func = { |val|
@@ -246,7 +254,7 @@ PocketDial : MIDIKtl {
 
             // update params ?
             if (resetDict[proxy] != true, {
-                this.update(proxy)
+                this.updateProxyParams(proxy)
             });
             currentVal = proxyParamsDict[proxy][param][\val];
             currentVal = param.asSpec.unmap(currentVal);
