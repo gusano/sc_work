@@ -552,7 +552,7 @@ BCR : MIDIKtl {
      * @return self
      */
     *makeDefaults {
-        defaults.put(this.class, BCR.getDefaults);
+        defaults.put(this, BCR.getDefaults);
     }
 
     /**
