@@ -85,13 +85,6 @@ PocketDial : MIDIKtl {
     }
 
     /**
-     * unmapAll Unmap all currently mapped proxies
-     */
-    unmapAll {
-
-    }
-
-    /**
      * findMidiIn
      * Finds the MIDIIn device via name pattern. If several
      * sources contain this name, only the first one is used.
@@ -294,7 +287,7 @@ PocketDial : MIDIKtl {
     }
 
     /**
-     * unmap
+     * unmap Unmap a given proxy
      * @param NodeProxy
      */
     unmap { |proxy|
@@ -302,6 +295,13 @@ PocketDial : MIDIKtl {
             ktlDict.removeAt(key);
         };
         nodeDict[proxy][\params].clear;
+    }
+
+    /**
+     * unmapAll Unmap all currently mapped proxies
+     */
+    unmapAll {
+        nodeDict.keys.do(this.unmap(_))
     }
 
     /**
