@@ -65,25 +65,12 @@ PocketDial : MIDIKtl {
      * @param String src Name pattern for MIDI source/destination
      */
     init { |src|
-        this.checkDependencies();
         this.findMidiIn(src);
         super.init();
         proxyParamsDict = ();
         resetDict = ();
         nodeDict = ();
         lastTime = Main.elapsedTime;
-    }
-
-    /**
-     * checkDependencies
-     * @throws PocketDialError if dependencies are not installed
-     */
-    checkDependencies {
-        if ('Ktl'.asClass.isNil, {
-            PocketDialError(
-                "Required 'Ktl' quark is not installed."
-            ).throw
-        })
     }
 
     /**
