@@ -61,7 +61,6 @@ BCR : MIDIKtl {
      */
     init { |srcName, destName|
         if (destName.isNil, { destName = srcName });
-        this.checkDependencies();
         this.findMidiIn(srcName);
         this.findMidiOut(destName);
         super.init();
@@ -76,16 +75,6 @@ BCR : MIDIKtl {
         super.free();
         ccDict.clear();
         nodeDict.clear();
-    }
-
-    /**
-     * checkDependencies
-     * @throws BCRError if dependencies are not installed
-     */
-    checkDependencies {
-        if ('Ktl'.asClass.isNil, {
-            BCRError("Required 'Ktl' quark is not installed.").throw
-        })
     }
 
     /**
