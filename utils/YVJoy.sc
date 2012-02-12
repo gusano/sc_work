@@ -29,11 +29,20 @@ YVJoy {
         GeneralHID.startEventLoop();
     }
 
-    mapTo { |id, func|
+    // TODO: toggle mode
+    mapTo { |id, funcOn, funcOff = nil|
         dev.slots[1].at(keys[id]).action_{ |v|
             if (v.value.asInteger > 0, {
-                func.value
+                funcOn.value
+            }, {
+                if (funcOff.notNil, {
+                    funcOff.value
+                })
             })
         }
+    }
+
+    unmap { |id|
+        dev.slots[1].at(keys[id]).action_{}
     }
 }
