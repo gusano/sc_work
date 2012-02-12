@@ -10,15 +10,17 @@ This is an emergency class written in a hurry to be able to use
 a joystick (Thrustmaster Firestorm) for my next gigs.
 
 Experimental !
-    p = ProxySpace.push(s.boot)
 
-    ~noise = {WhiteNoise.ar(0.3)}
+    p = ProxySpace.push(s.boot);
+
+    ~noise = { WhiteNoise.ar(0.3) };
 
     j = YVJoy.new();
 
     // top button plays|stops NodeProxy
-    j.mapTo(1, { ~noise.play }, { ~noise.stop })
+    j.mapTo(1, { ~noise.play }, { ~noise.stop });
 
+    j.free;
 
 ServerOptionsGui
 ----------------
