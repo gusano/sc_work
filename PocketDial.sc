@@ -23,6 +23,11 @@ PocketDial : MIDIKtl {
     var <nodeDict;
 
     /**
+     * @var Dictionary ids Associate each NodeProxy with an id
+     */
+    var <ids;
+
+    /**
      * @var Dictionary proxyParamsDict Store updated NodeProxy keys/values
      */
     var <proxyParamsDict;
@@ -70,6 +75,7 @@ PocketDial : MIDIKtl {
         proxyParamsDict = ();
         resetDict = ();
         nodeDict = ();
+        ids = (); // for PocketDialGui
         lastTime = Main.elapsedTime;
     }
 
@@ -82,6 +88,7 @@ PocketDial : MIDIKtl {
         proxyParamsDict.clear;
         resetDict.clear;
         nodeDict.clear;
+        ids.clear;
         super.free;
     }
 
@@ -197,6 +204,9 @@ PocketDial : MIDIKtl {
 
         nodeDict[proxy] = ();
         nodeDict[proxy][\params] = List.new();
+        // for PocketDialGui
+        nodeDict[proxy][\id] = ids.size;
+        ids.add(ids.size -> (\node: proxy, \name: proxy.asCompileString));
 
         pparams.do{ |p, i|
             var cc = this.getCCKey(i, bank, offset);
@@ -293,7 +303,9 @@ PocketDial : MIDIKtl {
         nodeDict[proxy][\params].do { |key|
             ktlDict.removeAt(key);
         };
-        nodeDict[proxy][\params].clear;
+        //nodeDict[proxy][\params].clear;
+        ids.removeAt(nodeDict[proxy][\id]);
+        nodeDict.removeAt[proxy];
     }
 
     /**
