@@ -66,10 +66,11 @@ PocketDialGui {
                 name = StaticText().string_(item[\name]);
 
                 volumes.add(id -> vol);
+
+                win.layout.addSpanning(StaticText().string_(id.asString), id, 0);
             } {
                 vol = play = name = StaticText().string_("");
             };
-            win.layout.addSpanning(id, id, 0);
             win.layout.addSpanning(vol, id, 1);
             win.layout.addSpanning(play, id, 2);
             win.layout.addSpanning(name, id, 3);
