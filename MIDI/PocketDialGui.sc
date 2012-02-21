@@ -10,7 +10,7 @@
 
 PocketDialGui {
 
-    var <pocketDial, <win, <modeButton, <volumes, <plays;
+    var <pocketDial, <win, <modeButton, <volumes, <plays, <assigns;
 
     *new { |pocketDial=nil|
         if (pocketDial.isNil, {
@@ -24,22 +24,26 @@ PocketDialGui {
         win = nil;
         volumes = ();
         plays = ();
+        assigns = ();
     }
 
     makeGui {
         if (win.notNil, { win.close });
         win = Window("PocketDialGui").front;
         win.layout_(QGridLayout());
+        win.onClose_({ pocketDial.lock(false) });
         this.updateLayout();
     }
 
     updateLayout {
         //pocketDial.ids.keys.do{ |id|
         16.do{ |id|
-            var item, vol, play, name;
+            var item, vol, play, assign, name;
+            id = id + 1;
             try {
                 item = pocketDial.ids[id];
-
+            };
+            if (item.notNil, {
                 vol = Slider()
                 .orientation_(\horizontal)
                 .action_{ |sl|
@@ -48,7 +52,10 @@ PocketDialGui {
                 .value_(item[\node].vol);
 
                 play = Button()
-                .states_([["start", Color.green], ["stop", Color.red]])
+                .states_([
+                    ["start", Color.black, Color.green],
+                    ["stop", Color.black, Color.red]
+                ])
                 .action_{ |butt|
                     if (butt.value == 1, {
                         item[\node].play
@@ -63,17 +70,36 @@ PocketDialGui {
                 });
                 plays.add(id -> play);
 
+                if (id > 4, { // only for virtual banks
+                    assign = Button()
+                    .states_([
+                        ["assign", Color.black, Color.green],
+                        ["assign", Color.black, Color.red]
+                    ])
+                    .action_{ |butt|
+                        if (butt.value == 1, {
+                            "assign".postln
+                        }, {
+                            "not assign".postln
+                        })
+                    };
+                }, {
+                    assign = nil;
+                });
+                assigns.add(id -> assign);
+
                 name = StaticText().string_(item[\name]);
 
                 volumes.add(id -> vol);
 
                 win.layout.addSpanning(StaticText().string_(id.asString), id, 0);
-            } {
-                vol = play = name = StaticText().string_("");
-            };
+            }, {
+                vol = play = assign = name = StaticText().string_("");
+            });
             win.layout.addSpanning(vol, id, 1);
             win.layout.addSpanning(play, id, 2);
-            win.layout.addSpanning(name, id, 3);
+            win.layout.addSpanning(assign, id, 3);
+            win.layout.addSpanning(name, id, 4);
         };
         this.addModeButton();
         this.manageKeys();
@@ -98,24 +124,29 @@ PocketDialGui {
 
     manageVol { |cc, val|
         var delta, volume, proxy;
-        cc = cc % 8; // works on all banks
-        proxy = pocketDial.ids[cc][\node];
-        delta  = val - 64;
-        // use a bigger default step for volume
-        delta  = delta * delta.abs.linlin(1, 7, 0.05, 0.8);
-        volume = \amp.asSpec.unmap(proxy.vol);
-        volume = \amp.asSpec.map(volume + (delta / 127));
-        proxy.vol_(volume);
-        { volumes[cc].value_(volume) }.defer(0.1);
+        cc = (cc % 8) + 1; // works on all banks
+        try {
+            proxy = pocketDial.ids[cc][\node];
+            delta  = val - 64;
+            // use a bigger default step for volume
+            delta  = delta * delta.abs.linlin(1, 7, 0.05, 0.8);
+            volume = \amp.asSpec.unmap(proxy.vol);
+            volume = \amp.asSpec.map(volume + (delta / 127));
+            proxy.vol_(volume);
+            { volumes[cc].value_(volume) }.defer(0.1);
+        }
     }
 
     manageKeys {
         var mode;
         win.view.keyDownAction_({ |view, char, modifiers, unicode, keycode|
-            this.managePlay(unicode - 49);
+            this.managePlay(unicode - 48);
             if (unicode == 32, {
                 mode = modeButton.value;
                 modeButton.valueAction_((1 - mode).abs);
+            }, {
+                // on my machine only...
+                this.manageAssign(keycode - 16777263)
             })
         })
     }
@@ -133,6 +164,12 @@ PocketDialGui {
                 node.play;
                 { plays[id].value_(1) }.defer(0.1)
             });
+        })
+    }
+
+    manageAssign { |id|
+        if (id > 4 and: { id < 9 }, {
+            ("managing " ++ id).postcs;
         })
     }
 
