@@ -205,8 +205,8 @@ PocketDial : MIDIKtl {
         nodeDict[proxy] = ();
         nodeDict[proxy][\params] = List.new();
         // for PocketDialGui
-        nodeDict[proxy][\id] = ids.size;
-        ids.add(ids.size -> (\node: proxy, \name: proxy.asCompileString));
+        nodeDict[proxy][\id] = bank;
+        ids.add(bank -> (\node: proxy, \name: proxy.asCompileString));
 
         pparams.do{ |p, i|
             var cc = this.getCCKey(i, bank, offset);
@@ -325,7 +325,7 @@ PocketDial : MIDIKtl {
      * @see makeResponder()
      */
     getCCKey { |nr, bank, offset=1|
-        var banks = ["A", "B", "C", "D"];
+        var banks = ["A", "B", "C", "D", "E", "F","G","H"];
         var key = "kn%%%".format(banks[bank - 1], offset + nr).asSymbol;
         ^defaults[this.class][key]
     }
@@ -371,10 +371,11 @@ PocketDial : MIDIKtl {
     *getDefaults {
         // All on midi chan 0,
         // CC numbers are 0-15, 16-31, 32-47, 48-63
+        // banks E, F, G, H are virtual
         var dict = ();
-        var banks = ["A", "B", "C", "D"];
+        var banks = ["A", "B", "C", "D", "E", "F","G", "H"];
 
-        4.do { |i|
+        banks.size.do { |i|
             16.do { |ii|
                 dict.put(
                     ("kn" ++ banks[i] ++ (ii + 1)).asSymbol,
