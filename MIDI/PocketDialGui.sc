@@ -6,6 +6,7 @@
  * @version 0.1
  * @since   2012-02-16
  * @link    http://github.com/gusano/sc_work/tree/master/MIDI
+ * @todo    Use ProxyMixer once it's rewritten with Qt
  */
 
 PocketDialGui {
@@ -32,6 +33,11 @@ PocketDialGui {
         win = Window("PocketDialGui").front;
         win.layout_(QGridLayout());
         win.onClose_({ pocketDial.lock(false) });
+        this.updateLayout();
+    }
+
+    update {
+        win.view.removeAll();
         this.updateLayout();
     }
 
