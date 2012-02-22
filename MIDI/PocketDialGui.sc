@@ -55,7 +55,8 @@ PocketDialGui {
                 .action_{ |sl|
                     item[\node].vol_(sl.value)
                 }
-                .value_(item[\node].vol);
+                .value_(item[\node].vol)
+                .canFocus_(false);
 
                 play = Button()
                 .states_([
@@ -68,7 +69,8 @@ PocketDialGui {
                     }, {
                         item[\node].stop
                     })
-                };
+                }
+                .canFocus_(false);
                 if (item[\node].monitor.isPlaying, {
                     play.value = 1
                 }, {
@@ -88,7 +90,8 @@ PocketDialGui {
                         }, {
                             "not assign".postln
                         })
-                    };
+                    }
+                    .canFocus_(false);
                 }, {
                     assign = nil;
                 });
