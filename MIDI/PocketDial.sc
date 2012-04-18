@@ -297,7 +297,7 @@ PocketDial : MIDIKtl {
             volume = \amp.asSpec.map(volume + (delta / 127));
             proxy.vol_(volume);
             if (inform, {
-                this.asciiParams(proxy, 'vol', \amp.asSpec.unmap(volume))
+                this.asciiParams(proxy, \vol, \amp.asSpec.unmap(volume))
             });
         });
     }
@@ -307,7 +307,9 @@ PocketDial : MIDIKtl {
      * @param NodeProxy
      */
     unmap { |proxy|
-        proxy = this.fixName(proxy);
+        if (proxy.class != Symbol) {
+            proxy = this.fixName(proxy)
+        };
         nodeDict[proxy][\params].do{ |key|
             ktlDict.removeAt(key);
         };
