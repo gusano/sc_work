@@ -191,6 +191,7 @@ PocketDial : MIDIKtl {
             stepmin=0.05, stepmax=0.5, mapVol=true;
 
         var proxyName, pparams, pairs, maxNrOfCCs, i = 0;
+        var ccVol = this.getCCKey(16, bank, 0);
 
         pairs = proxy.getKeysValues;
         pparams = params ?? pairs.flop[0];
@@ -233,7 +234,10 @@ PocketDial : MIDIKtl {
                 })
             })
         };
-        if (mapVol == true, { this.mapVolume(proxy, bank) });
+        if (mapVol == true, {
+            nodeDict[proxyName][\params].add(ccVol);
+            this.mapVolume(proxy, ccVol);
+        });
     }
 
     /**
@@ -281,12 +285,9 @@ PocketDial : MIDIKtl {
     /**
      * mapVolume Map a knob (default cc 16) to proxy volume
      * @param NodeProxy proxy
-     * @param Integer   bank
-     * @param Integer   ccnr
+     * @param Integer   cc
      */
-    mapVolume { |proxy, bank=1, ccnr=16|
-        var cc = this.getCCKey(ccnr, bank, 0);
-
+    mapVolume { |proxy, cc|
         this.addAction(cc, { |val|
             var delta, volume;
             delta  = val - 64;
@@ -299,7 +300,6 @@ PocketDial : MIDIKtl {
                 this.asciiParams(proxy, 'vol', \amp.asSpec.unmap(volume))
             });
         });
-        nodeDict[proxy][\params].add(cc);
     }
 
     /**
