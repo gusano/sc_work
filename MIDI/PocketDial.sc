@@ -23,9 +23,9 @@ PocketDial : MIDIKtl {
     var <nodeDict;
 
     /**
-     * @var Dictionary ids Associate each NodeProxy with an id
+     * @var Dictionary mapped Store  each mapped NodeProxy
      */
-    var <ids;
+    var <mapped;
 
     /**
      * @var Dictionary proxyParamsDict Store updated NodeProxy keys/values
@@ -73,10 +73,10 @@ PocketDial : MIDIKtl {
         this.findMidiIn(src);
         super.init();
         proxyParamsDict = ();
-        resetDict = ();
-        nodeDict = ();
-        ids = (); // for PocketDialGui
-        lastTime = Main.elapsedTime;
+        resetDict       = ();
+        nodeDict        = ();
+        mapped          = (); // for PocketDialGui
+        lastTime        = Main.elapsedTime;
     }
 
     /**
@@ -88,7 +88,7 @@ PocketDial : MIDIKtl {
         proxyParamsDict.clear;
         resetDict.clear;
         nodeDict.clear;
-        ids.clear;
+        mapped.clear();
         super.free;
     }
 
@@ -190,7 +190,7 @@ PocketDial : MIDIKtl {
         arg proxy, bank=1, offset=1, params=nil,
             stepmin=0.05, stepmax=0.5, mapVol=true;
 
-        var pparams, pairs, maxNrOfCCs;
+        var proxyName, pparams, pairs, maxNrOfCCs, i = 0;
 
         pairs = proxy.getKeysValues;
         pparams = params ?? pairs.flop[0];
@@ -202,29 +202,36 @@ PocketDial : MIDIKtl {
             this.updateProxyParams(proxy, bank, offset)
         });
 
-        nodeDict[proxy] = ();
-        nodeDict[proxy][\params] = List.new();
-        // for PocketDialGui
-        nodeDict[proxy][\id] = bank;
-        ids.add(bank -> (\node: proxy, \name: proxy.asCompileString));
+        // use name as symbol String
+        proxyName = this.fixName(proxy);
 
-        pparams.do{ |p, i|
+        nodeDict[proxyName] = ();
+        nodeDict[proxyName][\node] = proxy;
+        nodeDict[proxyName][\params] = List.new();
+        // for PocketDialGui
+        nodeDict[proxyName][\id] = bank;
+        mapped.add(bank -> (\node: proxy, \name: proxyName));
+
+        pparams.do{ |p|
             var cc = this.getCCKey(i, bank, offset);
             var action;
 
-            if (i < maxNrOfCCs, {
-                if (p.asSpec.isNil, {
-                    Spec.add(p.asSymbol, [0, 127]);
-                    "% doesn't have a Spec !\nusing default\n".format(p).warn
-                });
-                this.addAction(
-                    cc, this.generateFunction(proxy, p, stepmin, stepmax)
-                );
-                nodeDict[proxy][\params].add(cc);
-                if (inform, {
-                    postf("mapping % -> %_%\n", p, bank, i + offset)
-                });
-            });
+            if (p.asSymbol != \in,{
+                if (i < maxNrOfCCs, {
+                    if (p.asSpec.isNil, {
+                        Spec.add(p.asSymbol, [0, 127]);
+                        "% doesn't have a Spec !\nusing default\n".format(p).warn
+                    });
+                    this.addAction(
+                        cc, this.generateFunction(proxy, p, stepmin, stepmax)
+                    );
+                    nodeDict[proxyName][\params].add(cc);
+                    if (inform, {
+                        postf("mapping % -> %_%\n", p, bank, i + offset)
+                    });
+                    i = i + 1;
+                })
+            })
         };
         if (mapVol == true, { this.mapVolume(proxy, bank) });
     }
@@ -300,12 +307,12 @@ PocketDial : MIDIKtl {
      * @param NodeProxy
      */
     unmap { |proxy|
-        nodeDict[proxy][\params].do { |key|
+        proxy = this.fixName(proxy);
+        nodeDict[proxy][\params].do{ |key|
             ktlDict.removeAt(key);
         };
-        //nodeDict[proxy][\params].clear;
-        ids.removeAt(nodeDict[proxy][\id]);
-        nodeDict.removeAt[proxy];
+        mapped.removeAt(nodeDict[proxy][\id]);
+        nodeDict.removeAt(proxy);
     }
 
     /**
@@ -313,6 +320,13 @@ PocketDial : MIDIKtl {
      */
     unmapAll {
         nodeDict.keys.do(this.unmap(_))
+    }
+
+    /**
+     * fix name so we can use both ~foo or 'foo' for accessing proxies
+     */
+    fixName { |name|
+        ^name.cs.replace("~", "").asSymbol;
     }
 
     /**

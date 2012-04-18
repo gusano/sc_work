@@ -30,7 +30,7 @@ PocketDialGui {
 
     makeGui {
         if (win.notNil, { win.close });
-        win = Window("PocketDialGui").front;
+        win = Window("PocketDialGui", Rect(100, 100, 400, 400)).front;
         win.layout_(QGridLayout());
         win.onClose_({ pocketDial.lock(false) });
         this.updateLayout();
@@ -42,12 +42,12 @@ PocketDialGui {
     }
 
     updateLayout {
-        //pocketDial.ids.keys.do{ |id|
+        //pocketDial.mapped.keys.do{ |id|
         16.do{ |id|
             var item, vol, play, assign, name;
             id = id + 1;
             try {
-                item = pocketDial.ids[id];
+                item = pocketDial.mapped[id];
             };
             if (item.notNil, {
                 vol = Slider()
@@ -116,7 +116,10 @@ PocketDialGui {
 
     addModeButton {
         modeButton = Button()
-        .states_([["volumes"], ["volumes", Color.red]])
+        .states_([
+            ["volumes"],
+            ["volumes", Color.black, Color.red]
+        ])
         .action_{ |butt| this.manageVolMode(butt.value) }
         .canFocus_(false);
         win.layout.addSpanning(modeButton, 16, 1, 4);
@@ -135,7 +138,7 @@ PocketDialGui {
         var delta, volume, proxy;
         cc = (cc % 8) + 1; // works on all banks
         try {
-            proxy = pocketDial.ids[cc][\node];
+            proxy = pocketDial.mapped[cc][\node];
             delta  = val - 64;
             // use a bigger default step for volume
             delta  = delta * delta.abs.linlin(1, 7, 0.05, 0.8);
@@ -163,7 +166,7 @@ PocketDialGui {
     managePlay { |id|
         var node;
         try {
-            node = pocketDial.ids[id][\node];
+            node = pocketDial.mapped[id][\node];
         };
         if (node.notNil, {
             if (node.monitor.isPlaying, {
