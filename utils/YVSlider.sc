@@ -8,24 +8,24 @@
  * @link    http://github.com/gusano/sc_work/tree/master/utils
  *
  * @usage   l = YVSlider("hola", \freq.asSpec, { |x| x.postcs })
- * @todo    orientation, fancy colors, ...
+ * @todo    fix vertical sizes, fancy colors, ...
  */
 
 YVSlider {
 
     var <layout, <label, <slider, <numbox, <spec;
 
-    *new { |label, spec, action|
-        ^super.new.init(label, spec, action)
+    *new { |label, spec, action, orientation = \horizontal|
+        ^super.new.init(label, spec, action, orientation)
     }
 
     // returns a QLayout
-    init { |aLabel, aSpec, action|
+    init { |aLabel, aSpec, action, orientation|
         spec   = aSpec;
         label  = this.prGetText(aLabel);
-        slider = this.prGetSlider();
+        slider = this.prGetSlider(orientation);
         numbox = this.prGetNumbox();
-        layout = this.prGetLayout();
+        layout = this.prGetLayout(orientation);
 
         (spec.step == 0).if { numbox.scroll_step_(0.01) };
         this.prSetGuiAction(action);
@@ -40,9 +40,9 @@ YVSlider {
             .maxWidth_(50);
     }
 
-    prGetSlider {
+    prGetSlider { |orientation|
         ^Slider()
-            .orientation_(\horizontal)
+            .orientation_(orientation)
             .value_(spec.unmap(spec.default));
     }
 
@@ -54,8 +54,13 @@ YVSlider {
             .clipHi_(spec.clipHi);
     }
 
-    prGetLayout {
-        ^HLayout(label, [slider, stretch: 1], numbox);
+    prGetLayout { |orientation|
+        var layout;
+        orientation.switch(
+            \horizontal, { layout = HLayout },
+            \vertical,   { layout = VLayout }
+        );
+        ^layout.new(label, [slider, stretch: 1], numbox);
     }
 
     prSetGuiAction { |action|
