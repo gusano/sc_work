@@ -13,7 +13,7 @@
 
 YVSlider {
 
-    var <layout, <label, <slider, <numbox, spec;
+    var <layout, <label, <slider, <numbox, <spec;
 
     *new { |label, spec, action|
         ^super.new.init(label, spec, action)
@@ -22,21 +22,31 @@ YVSlider {
     init { |aLabel, aSpec, action|
         spec   = aSpec;
         label  = StaticText().string_(aLabel).minWidth_(40).maxWidth_(50);
-        slider = Slider()
+        slider = this.prGetSlider();
+        numbox = this.prGetNumbox();
+        layout = HLayout(label, [slider, stretch: 1], numbox);
+
+        (spec.step == 0).if { numbox.scroll_step_(0.01) };
+        this.prSetGuiAction(action);
+
+        ^layout
+    }
+
+    prGetSlider {
+        ^Slider()
             .orientation_(\horizontal)
             .value_(spec.unmap(spec.default));
-        numbox = NumberBox()
+    }
+
+    prGetNumbox {
+        ^NumberBox()
             .maxWidth_(80)
             .value_(spec.default)
             .clipLo_(spec.clipLo)
             .clipHi_(spec.clipHi);
-        (spec.step == 0).if { numbox.scroll_step_(0.01) };
-        this.setGuiAction(action);
-        layout = HLayout(label, [slider, stretch: 1], numbox);
-        ^layout
     }
 
-    setGuiAction { |action|
+    prSetGuiAction { |action|
         slider.action_{ |sl|
             action.(spec.map(sl.value));
             numbox.value_(spec.map(sl.value));
