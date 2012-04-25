@@ -19,17 +19,25 @@ YVSlider {
         ^super.new.init(label, spec, action)
     }
 
+    // returns a QLayout
     init { |aLabel, aSpec, action|
         spec   = aSpec;
-        label  = StaticText().string_(aLabel).minWidth_(40).maxWidth_(50);
+        label  = this.prGetText(aLabel);
         slider = this.prGetSlider();
         numbox = this.prGetNumbox();
-        layout = HLayout(label, [slider, stretch: 1], numbox);
+        layout = this.prGetLayout();
 
         (spec.step == 0).if { numbox.scroll_step_(0.01) };
         this.prSetGuiAction(action);
 
         ^layout
+    }
+
+    prGetText { |string|
+        ^StaticText()
+            .string_(string)
+            .minWidth_(40)
+            .maxWidth_(50);
     }
 
     prGetSlider {
@@ -44,6 +52,10 @@ YVSlider {
             .value_(spec.default)
             .clipLo_(spec.clipLo)
             .clipHi_(spec.clipHi);
+    }
+
+    prGetLayout {
+        ^HLayout(label, [slider, stretch: 1], numbox);
     }
 
     prSetGuiAction { |action|
