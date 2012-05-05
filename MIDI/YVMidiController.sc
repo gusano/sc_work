@@ -48,4 +48,8 @@ YVMidiController {
     // format MIDI chan|cc
     makeCCKey { |chan, cc| ^(chan.asString ++ "_" ++ cc).asSymbol }
 
+    ccKeyToChanCtl { |ccKey| ^ccKey.asString.split($_).asInteger }
+
+    keyToChanCtl { |key| ^this.ccKeyToChanCtl(this.ktlNames[key]) }
+
 }
