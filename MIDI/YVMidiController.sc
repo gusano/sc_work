@@ -17,7 +17,7 @@ YVMidiController {
     var <srcID;   // index of MIDIIN device used
     var <destID;  // index of MIDIOUT device used
     var <midiOut; // MIDIOut
-    var <ktlDict; // dictionnary which contains all mapped controls/functions
+    var <ctlDict; // dictionnary which contains all mapped controls/functions
     var <resp;    // main CCResponder
 
 
@@ -34,7 +34,7 @@ YVMidiController {
     }
 
     init {
-        ktlDict = ktlDict ?? ();
+        ctlDict = ctlDict ?? ();
 
         if( destID.notNil ) {
             midiOut = MIDIOut(destID);

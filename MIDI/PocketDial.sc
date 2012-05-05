@@ -80,7 +80,7 @@ PocketDial : YVMidiController {
      */
     free {
         this.unmapAll();
-        ktlDict.clear;
+        ctlDict.clear;
         proxyParamsDict.clear;
         resetDict.clear;
         nodeDict.clear;
@@ -112,9 +112,9 @@ PocketDial : YVMidiController {
 
             if (this.class.verbose, { ['cc', src, chan, ccn, ccval].postcs });
 
-            if (ktlDict[lookie].notNil and: { locked.not }, {
-                //ktlDict[lookie].valueAll(ccval);
-                ktlDict[lookie].value(ccval)
+            if (ctlDict[lookie].notNil and: { locked.not }, {
+                //ctlDict[lookie].valueAll(ccval);
+                ctlDict[lookie].value(ccval)
             });
             if (locked, {
                 // volume
@@ -133,7 +133,7 @@ PocketDial : YVMidiController {
      * @param Function action The function to be executed
      */
     addAction{ |ctlKey, action|
-        ktlDict.add(ctlKey -> action);
+        ctlDict.add(ctlKey -> action);
         "added action for %".format(ctlKey).postcs;
     }
 
@@ -329,7 +329,7 @@ PocketDial : YVMidiController {
             proxy = this.fixName(proxy)
         };
         nodeDict[proxy][\params].do{ |key|
-            ktlDict.removeAt(key);
+            ctlDict.removeAt(key);
         };
         mapped.removeAt(nodeDict[proxy][\id]);
         nodeDict.removeAt(proxy);
