@@ -5,12 +5,14 @@ Utility classes to use 'Doepfer Pocket Dial' and 'Behringer BCR2000' within Supe
 
 These are to be used with Ndef or ProxySpace.
 
-** Install
+### Install
 
-Copy `BCR.sc`, `PocketDial.sc`, `YVMidiController.sc` (and their helpfiles) inside your user extensions folder:
+Copy `BCR.sc`, `PocketDial.sc`, `YVMidiController.sc`, `BCRSettings.sc` (and their helpfiles) inside your user extensions folder:
 `Platform.userExtensionDir`
 
-** BCR
+### BCR
+
+#### Usage
 
  - edit `BCRSettings.sc` and change midiChannel and CCs numbers according to your BCR settings
 
@@ -28,7 +30,7 @@ You can assign up to 8 proxies.
 
 Video demo coming soon...
 
-*** Basic usage
+#### Example code
 
     p = ProxySpace.push(s.boot)
 
@@ -54,14 +56,17 @@ Video demo coming soon...
     // cleanup
     b.free
 
-** PocketDial
+### PocketDial
 
+#### Usage
+
+For endless mode only !
 This assumes that your PocketDial uses CCs from 1 up to 63 (4 banks).
 You can map up to 4 nodes, one on each banks.
 By default, params are assigned starting from the first knob, unless you specify an offset.
 The last knob (8th) controls the node volume.
 
-*** Basic usage (endless mode only)
+#### Example code
 
     p = ProxySpace.push(s.boot)
 
@@ -81,7 +86,7 @@ The last knob (8th) controls the node volume.
     d.mapTo(~sin, 1, stepmax: 1.5)
     // try moving the knobs faster..
 
-** TODO
+### TODO
 
  - help files
  - video demo for BCR
