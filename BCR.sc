@@ -11,44 +11,18 @@
 
 BCR : YVMidiController {
 
-    /**
-     * @var Dictionary ccDict Store all moved CCs
-     */
-    var <ccDict;
-
-    /**
-     * @var Dictionary Store volume, on-off and selector keys
-     */
-    var <nodeDict;
-
-    /**
-     * @var Boolean update Enable|disable updating BCR2000
-     */
-    var <>update = true;
-
-    /**
-     * @var String selector Selector for the "learn" buttons
-     */
-    var <selector = "btB";
+    var <ccDict;           // moved CCs
+    var <nodeDict;         // store vol, on-off and selector keys
+    var <>update = true;   // (en|dis)able updating BCR2000
+    var <selector = "btB"; // selector for 'learn' buttons
 
 
-    /**
-     * *new
-     * @param String srcName  Name pattern for MIDI source
-     * @param String destName Name pattern for MIDI destination
-     * @return BCR
-     */
     *new { |srcName="bcr", destName|
         ^super.new.init(srcName, destName);
     }
 
-    /**
-     * init Prepare MIDI in/out.
-     *      If no name is given for the destination, we assume it's
-     *      the same as the one given for source.
-     * @param String srcName  Name pattern for MIDI source
-     * @param String destName Name pattern for MIDI destination
-     */
+    // prepare MIDI in/out. If no name is given for the destination, we assume
+    // it's the same as the one given for source.
     init { |srcName, destName|
         if (destName.isNil, { destName = srcName });
         this.findMidiIn(srcName);
@@ -59,20 +33,14 @@ BCR : YVMidiController {
         this.makeResp();
     }
 
-    /**
-     * free
-     */
     free {
         super.free();
         ccDict.clear();
         nodeDict.clear();
     }
 
-    /**
-     * findMidiIn Finds the MIDIIn device via name pattern. If several
-     *            sources contain this name, only the first one is used.
-     * @param String srcName Name pattern for MIDI source
-     */
+    // finds the MIDIIn device via name pattern. If several sources contain
+    // this name, only the first one is used.
     findMidiIn { |srcName|
         MIDIClient.sources.do{ |x|
             block { |break|
@@ -85,11 +53,8 @@ BCR : YVMidiController {
         }
     }
 
-    /**
-     * findMidiOut Finds the MIDIOut device via name pattern. If several
-     *             destinations contain this name, only the first one is used.
-     * @param String destName  Name pattern for MIDI destination
-     */
+    // finds the MIDIOut device via name pattern. If several destinations contain
+    // this name, only the first one is used.
     findMidiOut { |destName|
         block { |break|
             MIDIClient.destinations.do{ |x, i|
@@ -104,9 +69,7 @@ BCR : YVMidiController {
         }
     }
 
-    /**
-     * makeResp Main CCResponder lookup for actions to trigger
-     */
+    // main CCResponder lookup for actions to trigger
     makeResp {
         resp.remove();
         resp = CCResponder({ |src, chan, ccn, ccval|
@@ -123,29 +86,15 @@ BCR : YVMidiController {
         }, srcID);
     }
 
-    /**
-     * addAction Add a function to a specific CC
-     * @param Symbol   ctlKey 'knE1'
-     * @param Function action The function to be executed
-     */
     addAction{ |ctlKey, action|
         var newKey = defaults[this.class][ctlKey];
         ctlDict.add(newKey -> action);
     }
 
-    /**
-     * removeAction Remove a function for a CC
-     * @param Symbol key '0_33'
-     */
     removeAction{ |key|
         ctlDict.removeAt(key.asSymbol);
     }
 
-    /**
-     * mapToNodeParams
-     * @param mixed node
-     * @param Array pairs The name|params of the node
-     */
     mapToNodeParams { |node ... pairs|
         pairs.do { |pair|
             var ctl, param, spec, func;
@@ -166,11 +115,7 @@ BCR : YVMidiController {
         this.sendFromProxy(node, pairs);
     }
 
-    /**
-     * sendFromProxy Update BCR with current node values
-     * @param mixed node
-     * @param Array pairs The name|params of the node
-     */
+    // update BCR with current node values
     sendFromProxy { |node, pairs|
         var ctlNames, params, currVals, midiVals;
         if (destID.notNil and: update == true, {
@@ -185,22 +130,14 @@ BCR : YVMidiController {
         })
     }
 
-    /**
-     * sendCtlValue Send a CCval to MIDIOut
-     * @param Symbol  ctlName
-     * @param Integer val
-     */
+    // send a CCval to MIDIOut
     sendCtlValue { |ctlName, val|
         var chanCtl = this.ccKeyToChanCtl(defaults[this.class][ctlName]);
         midiOut.control(chanCtl[0], chanCtl[1], val);
     }
 
-    /**
-     * getNodeType Find out if the Node is a Synth or a NodeProxy.
-     *             Assume that user passes a String|Symbol in case of a Synth
-     * @param mixed node
-     * @return mixed
-     */
+    // find out if the Node is a Synth or a NodeProxy.
+    // we assume that user passes a String|Symbol in case of a Synth
     getNodeType { |node|
         if (node.isKindOf(NodeProxy),
             { ^node },
@@ -208,16 +145,9 @@ BCR : YVMidiController {
         )
     }
 
-    /**
-     * mapTo Declare a function that will recursively assign all node params
-     * to CCs and which will be toggled by a given ccSelector.
-     * @param mixed   node   The node being controlled (SynthDef, NodeProxy, ...)
-     * @param Integer id     The "column" which controls the node (8 x 4 groups)
-     * @param Symbol  offset
-     * @param Preset  preset TODO
-     * @throws BCRError if the mapping id is invalid
-     * @TODO   refactor
-     */
+    // declare a function that will recursively assign all node params
+    // to CCs and which will be toggled by a given ccSelector.
+    // TODO: refactor
     mapTo { |aNode, id, offset = 'knE1', preset|
         var node, nodeValues, nodeParams, ccKey, ccSelector, offsetChar,
             offsetNr, ctlKeyName, ccNewNames, pairs, func, newParams;
@@ -265,11 +195,7 @@ BCR : YVMidiController {
         //if ( preset.notNil, { presets.put(ccKey, preset) });
     }
 
-    /**
-     * unmap Remove node and associated volume, selector and function
-     * @param Symbol node
-     * @throws Warning if the selector is not found
-     */
+    // remove node and associated volume, selector and function
     unmap { |node|
         try {
             nodeDict[node].keys.do{ |key|
@@ -285,18 +211,11 @@ BCR : YVMidiController {
         }
     }
 
-    /**
-     * unmapAll Unmap all nodes currently assigned
-     */
     unmapAll {
         nodeDict.keys.do{ |key| this.unmap(key) }
     }
 
-    /**
-     * assignVolume Assign node volume to top knob
-     * @param mixed   node The node to control
-     * @param Integer id   The "column" number
-     */
+    // assign node volume to top knob
     assignVolume { |node, id|
         var volKnob = "kn%%".format(this.getGroupChar(id), id).asSymbol;
         var func;
@@ -313,11 +232,7 @@ BCR : YVMidiController {
         );
     }
 
-    /**
-     * assignToggle Assign play/stop to 1st row button
-     * @param mixed   node The node to control
-     * @param Integer id   The "column" number
-     */
+    // assign play/stop to 1st row button
     assignToggle { |node, id|
         var tglButton = "bt%%".format(this.getGroupChar(id), id).asSymbol;
         var func;
@@ -337,14 +252,7 @@ BCR : YVMidiController {
         );
     }
 
-    /**
-     * assignReset Assign reset to top knob push-mode
-     * @param mixed   node  The node to control
-     * @param Integer id    The "column" number
-     * @param Array   pairs
-     * @param Array   defaultParams
-     * @return nil if NodeProxy is a Synth
-     */
+    // assign reset to top knob push-mode
     assignReset { |node, id, pairs, defaultparams|
         var rstButton = "tr%%".format(this.getGroupChar(id), id).asSymbol;
         var func;
@@ -368,11 +276,6 @@ BCR : YVMidiController {
         );
     }
 
-    /**
-     * getParamsValues
-     * @param mixed node
-     * @return Array
-     */
     getParamsValues { |node|
         if (node.isKindOf(NodeProxy),
             { ^node.getKeysValues },
@@ -380,11 +283,6 @@ BCR : YVMidiController {
         )
     }
 
-    /**
-     * getSynthKeysValues
-     * @paran mixed node
-     * @return Array
-     */
     getSynthKeysValues { |node|
         var name = node.defName.asSymbol;
         var metadata = SynthDescLib.global.at(name).metadata;
@@ -394,9 +292,7 @@ BCR : YVMidiController {
         })
     }
 
-    /**
-     * mapped Utility method to get currently mapped nodes
-     */
+    // get currently mapped nodes
     mapped {
         nodeDict.keys.do{ |key|
             var nr = nodeDict[key]['volume'].asString.split($_).at(1);
@@ -404,10 +300,8 @@ BCR : YVMidiController {
         }
     }
 
-    /**
-     * connectJack Connect SuperCollider MIDIOut to BCR MIDIIn (Linux only)
-     * @TODO private use so refactor and move this to an extension
-     */
+    // connect SuperCollider MIDIOut to BCR MIDIIn (Linux only)
+    // TODO: private use so refactor and move this to an extension
     connectJack {
         var os = thisProcess.platform.name;
         if (os == \linux,
@@ -416,37 +310,22 @@ BCR : YVMidiController {
         )
     }
 
-    /**
-     * managePreset
-     */
     managePreset { |key, node, pairs|
         "'managePreset' is not yet imlemented".warn
     }
 
-    /**
-     * getCCNumForKey
-     * @param Symbol key
-     * @return Integer
-    */
     getCCNumForKey { |key|
         ^defaults[this.class][key].asString.drop(2).asInteger;
     }
 
-    /**
-     * getGroupChar For the 4 top encoder groups
-     * @param Integer id
-     * @return String
-     */
+    // for the 4 top encoder groups
     getGroupChar { |id|
         var chars = ["A", "B", "C", "D"];
         ^chars[((id - 1) / 8).asInt]
     }
 
-    /**
-     * checkParamSpec Check if the param has a valid ControlSpec.
-     *                If not, assign a default one to it [0, 127]
-     * @param Symbol param
-     */
+    // check if the param has a valid ControlSpec.
+    // if not, assign a default one to it [0, 127]
     checkParamSpec { |param|
         if (param.asSpec.isNil, {
             Spec.add(param, [0, 127]);
@@ -454,14 +333,8 @@ BCR : YVMidiController {
         })
     }
 
-    /**
-     * incrementCCNames Increment ccKeys (automatically change symbol if needed)
-     *                  ex: \knE6, \knE7, \knE8, \knF1, \knF2, ...
-     * @param Integer size       Number of times to increment
-     * @param Integer offsetNr   ID of the offset
-     * @param Integer offsetChar Char corresponding to the button row
-     * @return Array
-     */
+    // increment ccKeys (automatically change symbol if needed)
+    // ex: \knE6, \knE7, \knE8, \knF1, \knF2, ...
     incrementCCNames { |size, offsetNr, offsetChar|
         ^size.collect { |i|
             var newKey, currentId;
@@ -473,17 +346,11 @@ BCR : YVMidiController {
         }
     }
 
-    /**
-     * *makeDefaults Initialize BCR CC params
-     */
     *makeDefaults {
         defaults.put(this, BCR.getDefaults);
     }
 
-    /**
-     * *getDefaults Stores the CC numbers in 'defaults' Dictionary.
-     * @return Dictionary
-     */
+    // store the CC numbers in 'defaults' Dictionary.
     *getDefaults {
         var dict = Dictionary.new;
         var groups = ["A", "B", "C", "D"];
