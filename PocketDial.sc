@@ -206,7 +206,7 @@ PocketDial : YVMidiController {
      */
     mapTo {
         arg proxy, bank=1, offset=1, params=nil,
-            stepmin=0.05, stepmax=0.5, mapVol=true;
+            stepmin=0.05, stepmax=1.0, mapVol=true;
 
         var proxyName, pparams, pairs, maxNrOfCCs, i = 0;
         var ccVol = this.getCCKey(16, bank, 0);
