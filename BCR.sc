@@ -34,6 +34,7 @@ BCR : YVMidiController {
     }
 
     free {
+        this.unmapAll();
         super.free();
         ccDict.clear();
         nodeDict.clear();
