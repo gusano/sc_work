@@ -3,18 +3,13 @@
  * @desc    Use Behringer BCR2000 with SuperCollider.
  * @author  Yvan Volochine <yvan.volochine@gmail.com>
  * @license http://www.gnu.org/licenses/gpl-3.0.txt
- * @version 0.1
+ * @version 0.2
  * @since   2011-09-19
  * @link    http://github.com/gusano/sc_work/tree/master/MIDI
  * @TODO    Add support for presets
  */
 
-BCR : MIDIKtl {
-
-    /**
-     * @var bool verbose
-     */
-    classvar <>verbose = false;
+BCR : YVMidiController {
 
     /**
      * @var Dictionary ccDict Store all moved CCs
@@ -25,11 +20,6 @@ BCR : MIDIKtl {
      * @var Dictionary Store volume, on-off and selector keys
      */
     var <nodeDict;
-
-    /**
-     * @var Integer destID Index of MIDIOut device used
-     */
-    var <destID;
 
     /**
      * @var Boolean update Enable|disable updating BCR2000
@@ -66,6 +56,7 @@ BCR : MIDIKtl {
         super.init();
         ccDict   = ccDict ?? ();
         nodeDict = nodeDict ?? ();
+        this.makeResp();
     }
 
     /**
@@ -117,13 +108,13 @@ BCR : MIDIKtl {
      * makeResp Main CCResponder lookup for actions to trigger
      */
     makeResp {
-        this.removeResp();
+        resp.remove();
         resp = CCResponder({ |src, chan, ccn, ccval|
             var lookie = this.makeCCKey(chan, ccn);
             if (this.class.verbose, { ['cc', src, chan, ccn, ccval].postcs });
-            if (ktlDict[lookie].notNil) {
+            if (ctlDict[lookie].notNil) {
                 try {
-                    ktlDict[lookie].value(ccn, ccval);
+                    ctlDict[lookie].value(ccn, ccval);
                 } { |e|
                     e.errorString.warn;
                 };
@@ -139,7 +130,7 @@ BCR : MIDIKtl {
      */
     addAction{ |ctlKey, action|
         var newKey = defaults[this.class][ctlKey];
-        ktlDict.add(newKey -> action);
+        ctlDict.add(newKey -> action);
     }
 
     /**
@@ -147,7 +138,7 @@ BCR : MIDIKtl {
      * @param Symbol key '0_33'
      */
     removeAction{ |key|
-        ktlDict.removeAt(key.asSymbol);
+        ctlDict.removeAt(key.asSymbol);
     }
 
     /**
@@ -262,7 +253,7 @@ BCR : MIDIKtl {
         //if (offsetChar.ascii > 69, {
         //    "Mapping offset is too low: %".format(offsetChar).warn
         //});
-        ktlDict.put(ctlKeyName, func);
+        ctlDict.put(ctlKeyName, func);
         // create nodeDict[node] and save params and recall
         nodeDict.put(node, ());
         nodeDict[node].add('params' -> newParams);
