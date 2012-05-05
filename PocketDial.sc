@@ -11,59 +11,25 @@
 
 PocketDial : YVMidiController {
 
-    /**
-     * @var Dictionary nodeDict Store mapped params for each NodeProxy
-     */
-    var <nodeDict;
+    var <nodeDict;        // mapped params for each NodeProxy
+    var <mapped;          // mapped NodeProxy
+    var <proxyParamsDict; // updated NodeProxy keys/values
+    var <resetDict;       // NodeProxies that need to have params updated
+    var <>endless;        // endless mode (TODO)
+    var lastTime;         // last time a param was changed
+    var <>locked = false; // for PocketDialGui
+    var <>gui;            // for PocketDialGui
+    var <>inform = true;  // post params values in post window when moving CCs
 
-    /**
-     * @var Dictionary mapped Store each mapped NodeProxy
-     */
-    var <mapped;
-
-    /**
-     * @var Dictionary proxyParamsDict Store updated NodeProxy keys/values
-     */
-    var <proxyParamsDict;
-
-    /**
-     * @var Dictionary resetDict Store proxies that need to have params updated
-     */
-    var <resetDict;
-
-    /**
-     * @var Boolean endless Endless mode (TODO)
-     */
-    var <>endless;
-
-    /**
-     * @var Boolean inform
-     */
-    var <>inform = true;
-
-    /**
-     * @var Float lastTime Last time a param was changed (see updateProxyParams)
-     */
-    var lastTime;
-    var <>locked = false, <>gui;
-
-
-    /**
-     * *new
-     * @param String  src     Name pattern for MIDI source/destination
-     * @param Boolean endless Endless mode (non-endless mode TODO)
-     * @return PocketDial
-     */
+    // src: name pattern for MIDI source/destination
     *new { |src, endless = true|
         ^super.new.init(src).endless_(endless);
     }
 
-    /**
-     * init Prepare MIDI in/out.
-     *      If no name is given for the destination,
-     *      assume it's the same as the one given for source.
-     * @param String src Name pattern for MIDI source/destination
-     */
+
+    // prepare MIDI in/out.
+    // if no name is given for the destination, we assume it's the same as the
+    // one given for source.
     init { |src|
         this.findMidiIn(src);
         this.makeResp();
@@ -75,9 +41,6 @@ PocketDial : YVMidiController {
         lastTime        = Main.elapsedTime;
     }
 
-    /**
-     * free
-     */
     free {
         this.unmapAll();
         ctlDict.clear;
@@ -88,11 +51,8 @@ PocketDial : YVMidiController {
         super.free;
     }
 
-    /**
-     * findMidiIn Finds the MIDIIn device via name pattern. If several
-     *            sources contain this name, only the first one is used.
-     * @param String srcName Name pattern for MIDI source
-     */
+    // find the MIDIIn device via name pattern. If several sources contain this
+    // name, only use the first one.
     findMidiIn { |srcName|
         MIDIClient.sources.do{ |x|
             block { |break|
@@ -127,21 +87,11 @@ PocketDial : YVMidiController {
         locked = bool;
     }
 
-    /**
-     * addAction Add a function to a specific CC
-     * @param Symbol   ctlKey 'knE1'
-     * @param Function action The function to be executed
-     */
     addAction{ |ctlKey, action|
         ctlDict.add(ctlKey -> action);
         "added action for %".format(ctlKey).postcs;
     }
 
-    /**
-     * mapToNodeParams
-     * @param mixed node
-     * @param Array pairs The name|params of the node
-     */
     mapToNodeParams { |node ... pairs|
         pairs.do { |pair|
             var ctl, param, spec, func;
@@ -159,14 +109,8 @@ PocketDial : YVMidiController {
         };
     }
 
-    /**
-     * updateProxyParams Get new values for proxy params and store them.
-     *                   This turns out to be much faster than using nudgeSet
-     *                   which calls get() on a param for every new CC value.
-     * @param NodeProxy proxy
-     * @param Integer   bank
-     * @param Integer   offset
-     */
+    // Get new values for proxy params and store them. This turns out to be much
+    // faster than calling get() on a param for every new CC value (nudgeSet).
     updateProxyParams { |proxy, bank=nil, offset=nil|
         var pairs = proxy.getKeysValues;
         var dict  = proxyParamsDict[proxy] ?? ();
@@ -193,17 +137,7 @@ PocketDial : YVMidiController {
         } {|e| e.errorString.warn }
     }
 
-    /**
-     * mapTo
-     * Declare a function that will recursively assign all node params to CCs
-     * @param NodeProxy proxy   The node being controlled
-     * @param Integer   bank    One of the 4 banks
-     * @param Integer   offset
-     * @param Array     params
-     * @param Float     stepmin
-     * @param Float     stepmax
-     * @param Boolean   mapVol  Automatically assign a CC to node volume
-     */
+    // declare a function that will recursively assign all node params to CCs
     mapTo {
         arg proxy, bank=1, offset=1, params=nil,
             stepmin=0.05, stepmax=1.0, mapVol=true;
@@ -258,15 +192,8 @@ PocketDial : YVMidiController {
         });
     }
 
-    /**
-     * generateFunction Generate the function triggered by the CCResponder
-     * @param NodeProxy proxy
-     * @param Symbol    param
-     * @param Float     stepmin
-     * @param Float     stepmax
-     * @return Function
-     * @TODO refactor
-     */
+    // generateFunction Generate the function triggered by the CCResponder
+    // TODO refactor
     generateFunction { |proxy, param, stepmin, stepmax|
         var func = { |val|
             var delta, currentVal, newVal, time;
@@ -300,11 +227,7 @@ PocketDial : YVMidiController {
         ^func;
     }
 
-    /**
-     * mapVolume Map a knob (default cc 16) to proxy volume
-     * @param NodeProxy proxy
-     * @param Integer   cc
-     */
+    // map a knob (default cc 16) to NodeProxy volume
     mapVolume { |proxy, cc|
         this.addAction(cc, { |val|
             var delta, volume;
@@ -320,10 +243,6 @@ PocketDial : YVMidiController {
         });
     }
 
-    /**
-     * unmap Unmap a given proxy
-     * @param NodeProxy
-     */
     unmap { |proxy|
         if (proxy.class != Symbol) {
             proxy = this.fixName(proxy)
@@ -335,39 +254,21 @@ PocketDial : YVMidiController {
         nodeDict.removeAt(proxy);
     }
 
-    /**
-     * unmapAll Unmap all currently mapped proxies
-     */
     unmapAll {
         nodeDict.keys.do(this.unmap(_))
     }
 
-    /**
-     * fix name so we can use both ~foo or 'foo' for accessing proxies
-     */
+    // fix NodeProxy name so we can use both ~foo or 'foo' for accessing proxies
     fixName { |name|
         ^name.cs.replace("~", "").asSymbol;
     }
 
-    /**
-     * getCCKey Get CCkey corresponding to bank and offset
-     * Given a knob number, a bank and offset, find the corresponding '0_13'
-     * @param Integer nr
-     * @param Integer bank
-     * @param Integer offset
-     * @return Symbol
-     * @see makeResponder()
-     */
     getCCKey { |nr, bank, offset=1|
         var banks = ["A", "B", "C", "D", "E", "F","G","H"];
         var key = "kn%%%".format(banks[bank - 1], offset + nr).asSymbol;
         ^defaults[this.class][key]
     }
 
-    /**
-     * checkParamsSize Warn if the proxy has too many params
-     * @param Integer size
-     */
     checkParamsSize { |size|
         var max = 15;
         if (size > max, {
@@ -375,12 +276,7 @@ PocketDial : YVMidiController {
         });
     }
 
-    /**
-     * asciiParams Print param value in emacs post buffer
-     * @param NodeProxy proxy
-     * @param Symbol    param
-     * @param Integer   val
-     */
+    // print param value in emacs post buffer
     asciiParams { |proxy, param, val|
         var size = 13, pos, str;
         pos = (val * size).round.asInteger;
@@ -391,17 +287,11 @@ PocketDial : YVMidiController {
         (str + param + proxy.cs ++ "\n").asSymbol.post;
     }
 
-    /**
-     * *makeDefaults Initialize PocketDial CC params
-     */
     *makeDefaults {
         defaults.put(this, PocketDial.getDefaults);
     }
 
-    /**
-     * *getDefaults Stores the CC numbers in 'defaults' Dictionary
-     * @return Dictionary
-     */
+    // store CC numbers in 'defaults' Dictionary
     *getDefaults {
         // All on midi chan 0,
         // CC numbers are 0-15, 16-31, 32-47, 48-63
