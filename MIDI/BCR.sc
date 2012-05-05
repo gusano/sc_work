@@ -352,46 +352,19 @@ BCR : YVMidiController {
 
     // store the CC numbers in 'defaults' Dictionary.
     *getDefaults {
-        var dict = Dictionary.new;
-        var groups = ["A", "B", "C", "D"];
+        var dict     = ();
+        var midi     = BCRSettings.midiChannel;
+        var settings = BCRSettings.ccs;
 
-        8.do{ |i|
-            //4 encoder groups
-            4.do{ |j|
-                // top knob push mode
-                dict.put(
-                    ( "tr" ++ groups[j] ++ (i + 1)).asSymbol,
-                    ("0_" ++ (57 + (8 * j) + i)).asSymbol
-                );
-                // knobs (top row)
-                dict.put(
-                    ( "kn" ++ groups[j] ++ (i + 1)).asSymbol,
-                    ("0_" ++ (1 + (8 * j) + i)).asSymbol
-                );
-            };
+        dict.putAll(settings);
 
-            // buttons 1st row
-            dict.put(("btA" ++ (i + 1)).asSymbol, ("0_" ++ (89 + i)).asSymbol);
-            // buttons 2nd row
-            dict.put(("btB" ++ (i + 1)).asSymbol, ("0_" ++ (97 + i)).asSymbol);
-            // knobs (lower 3 rows)
-            dict.put(("knE" ++ (i + 1)).asSymbol, ("0_" ++ (33 + i)).asSymbol);
-            dict.put(("knF" ++ (i + 1)).asSymbol, ("0_" ++ (41 + i)).asSymbol);
-            dict.put(("knG" ++ (i + 1)).asSymbol, ("0_" ++ (49 + i)).asSymbol);
+        // append midi channel
+        dict.keys.do{ |key|
+            dict[key] = "%_%".format(midi, dict[key]).asSymbol
         };
 
-        // buttons (4 bottom right ones)
-        dict.putAll(
-            (
-                prA1: '0_105',
-                prA2: '0_106',
-                prB1: '0_107',
-                prB2: '0_108'
-            )
-        );
         ^dict
     }
-
 }
 
 
