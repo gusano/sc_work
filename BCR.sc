@@ -39,7 +39,7 @@ BCR : YVMidiController {
         nodeDict.clear();
     }
 
-    // finds the MIDIIn device via name pattern. If several sources contain
+    // find the MIDIIn device via name pattern. If several sources contain
     // this name, only the first one is used.
     findMidiIn { |srcName|
         MIDIClient.sources.do{ |x|
@@ -53,7 +53,7 @@ BCR : YVMidiController {
         }
     }
 
-    // finds the MIDIOut device via name pattern. If several destinations contain
+    // find the MIDIOut device via name pattern. If several destinations contain
     // this name, only the first one is used.
     findMidiOut { |destName|
         block { |break|
