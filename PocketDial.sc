@@ -3,19 +3,13 @@
  * @desc    Use Doepfer Pocket Dial with SuperCollider.
  * @author  Yvan Volochine <yvan.volochine@gmail.com>
  * @license http://www.gnu.org/licenses/gpl-3.0.txt
- * @version 0.1
+ * @version 0.2
  * @since   2011-11-09
  * @link    http://github.com/gusano/sc_work/tree/master/MIDI
  * @TODO:   Implement non-endless mode
- * @TODO:   Remove Ktl dependency ?
  */
 
-PocketDial : MIDIKtl {
-
-    /**
-     * @var Boolean verbose
-     */
-    classvar <>verbose = false;
+PocketDial : YVMidiController {
 
     /**
      * @var Dictionary nodeDict Store mapped params for each NodeProxy
@@ -23,7 +17,7 @@ PocketDial : MIDIKtl {
     var <nodeDict;
 
     /**
-     * @var Dictionary mapped Store  each mapped NodeProxy
+     * @var Dictionary mapped Store each mapped NodeProxy
      */
     var <mapped;
 
@@ -51,6 +45,7 @@ PocketDial : MIDIKtl {
      * @var Float lastTime Last time a param was changed (see updateProxyParams)
      */
     var lastTime;
+    var <>locked = false, <>gui;
 
 
     /**
@@ -60,7 +55,7 @@ PocketDial : MIDIKtl {
      * @return PocketDial
      */
     *new { |src, endless = true|
-        ^super.new.init(src).endless_(endless).init;
+        ^super.new.init(src).endless_(endless);
     }
 
     /**
@@ -71,6 +66,7 @@ PocketDial : MIDIKtl {
      */
     init { |src|
         this.findMidiIn(src);
+        this.makeResp();
         super.init();
         proxyParamsDict = ();
         resetDict       = ();
@@ -107,6 +103,28 @@ PocketDial : MIDIKtl {
                 })
             }
         }
+    }
+
+    makeResp {
+        resp.remove();
+        resp = CCResponder({ |src, chan, ccn, ccval|
+            var lookie = this.makeCCKey(chan, ccn);
+
+            if (this.class.verbose, { ['cc', src, chan, ccn, ccval].postcs });
+
+            if (ktlDict[lookie].notNil and: { locked.not }, {
+                //ktlDict[lookie].valueAll(ccval);
+                ktlDict[lookie].value(ccval)
+            });
+            if (locked, {
+                // volume
+                gui.manageVol(ccn, ccval);
+            });
+        }, srcID);
+    }
+
+    lock { |bool|
+        locked = bool;
     }
 
     /**
