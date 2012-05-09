@@ -1,7 +1,7 @@
 sc_work
 -------
 
-Some utilities for [SuperCollider](https://supercollider/supercollider).
+Some utilities for [SuperCollider](https://github.com/supercollider/supercollider).
 
  * FX: a couple of fx (distorsions mainly)
  * apps: some apps I wrote for research
