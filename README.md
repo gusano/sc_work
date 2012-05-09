@@ -18,7 +18,8 @@ Copy `BCR.sc`, `PocketDial.sc`, `YVMidiController.sc`, `BCRSettings.sc` (and the
 
  - recompile SuperCollider library
 
-NodeProxy are mapped to BCR top columns, which contain a knob and 2 buttons: [see picture](http://yvanvolochine.com/media/images/bcr_top.gif)
+NodeProxy are mapped to BCR top columns, which contain a knob and 2 buttons:
+[![screenshot](http://yvanvolochine.com/media/images/bcr_top.gif)](http://github.com/gusano/YVMidi)
  - top knob is proxy volume
  - top knob *push* resets proxy params to their default values
  - first button below toggles on-off (play-stop)
