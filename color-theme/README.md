@@ -1,8 +1,8 @@
 #### Color-theme-bluish
 
-To use this color-theme, you need the `emacs-goodies-el' package installed.
-Copy `color-theme-bluish.el' in your ~/.emacs.d folder and add the following
-lines to your ~/.emacs config file:
+To use this color-theme, you need the `emacs-goodies-el` package installed.
+Copy `color-theme-bluish.el` in your `~/.emacs.d` folder and add the following
+lines to your `~/.emacs` config file:
 
     (require 'color-theme)
     (color-theme-initialize)
