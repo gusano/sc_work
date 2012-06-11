@@ -3,6 +3,7 @@
 ;-- the following lines to your ~/.emacs config file
 
 (require 'color-theme)
+(color-theme-initialize)
 (load-file "~/.emacs.d/color-theme-bluish.el")
 (color-theme-bluish)
 
