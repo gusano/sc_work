@@ -1,8 +1,10 @@
-;-- to use this color-theme, you need the `emacs-goodies-el' package installed.
-;-- copy `color-theme-bluish.el' in your ~/.emacs.d folder and add 
-;-- the following lines to your ~/.emacs config file
+#### Color-theme-bluish
 
-(require 'color-theme)
+To use this color-theme, you need the `emacs-goodies-el' package installed.
+Copy `color-theme-bluish.el' in your ~/.emacs.d folder and add the following
+lines to your ~/.emacs config file:
+
+```(require 'color-theme)
 (color-theme-initialize)
 (load-file "~/.emacs.d/color-theme-bluish.el")
 (color-theme-bluish)
@@ -14,4 +16,4 @@
 
 ;-- colorize parenthesis, brackets, ...
 (font-lock-add-keywords 'sclang-mode
-	'(("[\(\)\{\}\|]" . font-lock-builtin-face)))
+	'(("[\(\)\{\}\|]" . font-lock-builtin-face)))```
