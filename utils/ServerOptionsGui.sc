@@ -6,6 +6,7 @@ ServerOptionsGui {
     var <parent, <>bounds, specialView, simpleView, advancedView;
     var width = 340, height = 520, standalone;
     var <>applyFunction, <>cancelFunction;
+    var <>verbose = true;
 
     *new { |server, parent, bounds|
         ^super.new.init(server, parent, bounds)
@@ -82,10 +83,10 @@ ServerOptionsGui {
         );
 
         simpleOptions = (
-            \latency:         (\type: NumberBox, \pos: 0),
-            \recChannels:     (\type: NumberBox, \pos: 1),
-            \recHeaderFormat: (\type: PopUpMenu, \pos: 2),
-            \recSampleFormat: (\type: PopUpMenu, \pos: 3)
+            \latency:         (\type: NumberBox, \modified: nil, \pos: 0),
+            \recChannels:     (\type: NumberBox, \modified: nil, \pos: 1),
+            \recHeaderFormat: (\type: PopUpMenu, \modified: nil, \pos: 2),
+            \recSampleFormat: (\type: PopUpMenu, \modified: nil, \pos: 3)
         );
 
 
@@ -276,15 +277,16 @@ ServerOptionsGui {
     }
 
     setServerOption { |options, key, type|
+        var value;
         if (type == PopUpMenu, {
-            options.tryPerform(
-                key.asSetter, currentValues[key].item.asString
-            )
+            value = currentValues[key].item.asString
         }, {
-            options.tryPerform(
-                key.asSetter, currentValues[key].value
-            )
+            value = currentValues[key].value
         });
+        options.tryPerform(key.asSetter, value);
+        if (verbose, {
+            " - changed: % -> %".format(key, value).postln; "";
+        })
     }
 
     getSampleFormats {
