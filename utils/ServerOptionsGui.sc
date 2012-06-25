@@ -290,14 +290,16 @@ ServerOptionsGui {
     }
 
     getSampleFormats {
-        ^[\int8, \int16, \int24, \int32, \mulaw, \alaw, \float]
+        //^[\int8, \int16, \int24, \int32, \mulaw, \alaw, \float]
+        ^[\int16, \int24, \int32, \float]
     }
 
     getHeaderFormats {
-        ^[
-            \aiff, \wav, \sun, \next, \sd2, \ircam, \raw, \mat4,
-            \mat5, \paf, \svx, \nist, \voc, \w64, \pvf, \xi, \htk,
-            \sds, \avr, \flac, \caf
-        ]
+        //^[
+        //    \aiff, \wav, \sun, \next, \sd2, \ircam, \raw, \mat4,
+        //    \mat5, \paf, \svx, \nist, \voc, \w64, \pvf, \xi, \htk,
+        //    \sds, \avr, \flac, \caf
+        //]
+        ^[\aiff, \wav]
     }
 }
