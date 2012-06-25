@@ -266,7 +266,9 @@ ServerOptionsGui {
         };
 
         simpleOptions.keys.do{ |key|
-            this.setServerOption(server, key, simpleOptions[key][\type]);
+            if (simpleOptions[key][\modified].notNil, {
+                this.setServerOption(server, key, simpleOptions[key][\type]);
+            });
         };
 
         if (standalone.notNil, {
