@@ -13,7 +13,7 @@ GUI utility for setting Server options.
     s = Server.local;
     g = ServerOptionsGui(s);
 Note that some settings need the Server to be rebooted for the changes to apply:
-`s.reboot;`
+    s.reboot;
 
 GamePad
 -------
