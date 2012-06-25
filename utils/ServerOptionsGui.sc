@@ -159,9 +159,9 @@ ServerOptionsGui {
                 );
             },
             \linux, {
-                simpleViewOptions.add(
-                    \device -> (\type: PopUpMenu, \modified: nil, \pos: 1)
-                );
+                //simpleViewOptions.add(
+                //    \device -> (\type: PopUpMenu, \modified: nil, \pos: 1)
+                //);
                 height = height - 30;
             }
         );
