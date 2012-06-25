@@ -1,119 +1,16 @@
-/**
- * @file    ServerOptionsGui.sc
- * @desc    GUI utility to change or visualize default server options.
- * @author  Yvan Volochine <yvan.volochine@gmail.com>
- * @license http://www.gnu.org/licenses/gpl-3.0.txt
- * @version 0.1
- * @since   2011-11-04
- * @link    http://github.com/gusano/sc_work/tree/master/utils
- *
- * @usage   g = ServerOptionsGui(s)
- */
-
 ServerOptionsGui {
 
-    /**
-     * @var Server server
-     */
-    var server;
-
-    /**
-     * @var ServerOptions serverOptions
-     */
-    var serverOptions;
-
-    /**
-     * @var Dictionary simpleViewOptions
-     */
-    var simpleViewOptions;
-
-    /**
-     * @var Dictionary advancedViewOptions
-     */
-    var advancedViewOptions;
-
-    /**
-     * @var Dictionary simpleOptions Options that do not need Server to be
-     *      rebooted to be set
-     */
-    var simpleOptions;
-
-    /**
-     * @var Dictionary currentValues
-     */
+    var server, serverOptions;
+    var simpleOptions, simpleViewOptions, advancedViewOptions;
     var currentValues;
+    var <parent, <>bounds, specialView, simpleView, advancedView;
+    var width = 340, height = 520, standalone;
+    var <>applyFunction, <>cancelFunction;
 
-    /**
-     * @var mixed parent The parent GUI
-     */
-    var <parent;
-
-    /**
-     * @var Rect bounds Main View bounds
-     */
-    var <>bounds;
-
-    /**
-     * @var View simpleView A view containing the basic settings
-     */
-    var simpleView;
-
-    /**
-     * @var View advancedView A view containing the advanced settings
-     */
-    var advancedView;
-
-    /**
-     * @var View specialView A view containing the simple options
-     */
-    var specialView;
-
-    /**
-     * @var Integer width Main view width
-     */
-    var width = 340;
-
-    /**
-     * @var Integer height Main view height
-     */
-    var height = 520;
-
-    /**
-     * @var Boolean standalone If no parent is given, we run in standalone mode
-     */
-    var standalone;
-
-    /**
-     * @var Function applyFunction Function called when clicking Apply
-     *      This is only called when not in standalone mode
-     */
-    var <>applyFunction;
-
-    /**
-     * @var Function cancelFunction Function called when clicking Cancel
-     *      This is only called when not in standalone mode
-     */
-    var <>cancelFunction;
-
-
-    /**
-     * *new
-     * @param Server server
-     * @param mixed  parent The parent container
-     * @param Rect   bounds
-     * @return self
-     */
     *new { |server, parent, bounds|
         ^super.new.init(server, parent, bounds)
     }
 
-    /**
-     * init Initialise default server options
-     * @param Server serverArg
-     * @param mixed  parentArg
-     * @param Rect   boundsArg
-     * @return self
-     */
     init { |serverArg, parentArg, boundsArg|
 
         server = serverArg ?? Server.default;
@@ -203,12 +100,6 @@ ServerOptionsGui {
         this.drawGui();
     }
 
-    /**
-     * drawGui
-     * Draw the main GUI: one QVLayout containing one QVLayout for the top
-     * button, one QGridLayout for the options and one QHLayout for the
-     * bottom buttons.
-     */
     drawGui {
         var mainView, topLayout, bottomLayout;
         var infoText, linkButton, modeButton, applyButton, cancelButton;
@@ -253,23 +144,12 @@ ServerOptionsGui {
         );
     }
 
-    /**
-     * getRebootText
-     * @return StaticText
-     */
     getRebootText {
         ^StaticText().string_(
             "These options will only be set after rebooting the server"
         ).background_(Color.red(0.7, 0.2))
     }
 
-    /**
-     * getView Assign different options to a View
-     * @param Dictionary options
-     * @param Color      color
-     * @param boolean    hasTitle
-     * @param boolean    visible
-     */
     getView { |options, color, hasTitle = false, visible = true|
         var view = View().background_(color);
         var grid = QGridLayout();
@@ -320,9 +200,6 @@ ServerOptionsGui {
         ^view
     }
 
-    /**
-     * setAudioDevice
-     */
     setAudioDevice {
         // TODO: use jack_lsp on linux and SC_JACK_SERVER...
         //Platform.case
@@ -338,11 +215,6 @@ ServerOptionsGui {
         */
     }
 
-    /**
-     * setSimpleOption Special case for server simple settings
-     * @param Symbol option
-     * @param mixed  GUI element
-     */
     setSimpleOption { |option, element|
         option.switch(
             \latency, { element.value_(server.latency) },
@@ -360,22 +232,12 @@ ServerOptionsGui {
         )
     }
 
-    /**
-     * setPopupItems
-     * @param PopUpMenu popup
-     * @param Array     items
-     * @param mixed     value
-     */
     setPopupItems { |popup, items, value|
         var array = items.collect(_.asSymbol);
         popup.items_(items);
         popup.value_(array.indexOf(value.asSymbol));
     }
 
-    /**
-     * swapView Swap between simple and advanced view
-     * @param Integer buttonValue
-     */
     swapView { |buttonValue|
         var simple = [simpleView, specialView];
 
@@ -385,9 +247,6 @@ ServerOptionsGui {
         )
     }
 
-    /**
-     * cancelAction
-     */
     cancelAction {
         if (standalone.notNil, {
             parent.close
@@ -396,9 +255,6 @@ ServerOptionsGui {
         })
     }
 
-    /**
-     * applyAction
-     */
     applyAction {
         [simpleViewOptions, advancedViewOptions].do{ |options|
             options.keys.do{ |key|
@@ -419,12 +275,6 @@ ServerOptionsGui {
         })
     }
 
-    /**
-     * setServerOption
-     * @param mixed  options Server or Server.options
-     * @param Symbol key
-     * @param mixed  type
-     */
     setServerOption { |options, key, type|
         if (type == PopUpMenu, {
             options.tryPerform(
@@ -437,18 +287,10 @@ ServerOptionsGui {
         });
     }
 
-    /**
-     * getSampleFormats
-     * @return Array
-     */
     getSampleFormats {
         ^[\int8, \int16, \int24, \int32, \mulaw, \alaw, \float]
     }
 
-    /**
-     * getHeaderFormats
-     * @return Array
-     */
     getHeaderFormats {
         ^[
             \aiff, \wav, \sun, \next, \sd2, \ircam, \raw, \mat4,
