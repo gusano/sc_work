@@ -1,4 +1,17 @@
-These are utilities of all kind.
+Some [SuperCollider](http://github.com/supercollider/supercollider) utilities.
+
+ServerOptionsGui
+----------------
+GUI utility for setting Server options.
+
+![My image](http://yvanvolochine.com/media/images/ServerOptionsGui.gif)
+
+#### Usage
+
+`s = Server.local;
+g = ServerOptionsGui(s);`
+Note that some settings need the Server to be rebooted for the changes to apply:
+`s.reboot;`
 
 GamePad
 -------
@@ -21,7 +34,3 @@ Experimental !
     j.mapTo(1, { ~noise.play }, { ~noise.stop });
 
     j.free;
-
-ServerOptionsGui
-----------------
-GUI utility for Server options (work in progress).
