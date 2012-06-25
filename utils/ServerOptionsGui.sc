@@ -280,11 +280,12 @@ ServerOptionsGui {
 
     setServerOption { |options, key, type|
         var value;
-        if (type == PopUpMenu, {
-            value = currentValues[key].item.asString
-        }, {
-            value = currentValues[key].value
-        });
+        switch (type,
+            PopUpMenu, { value = currentValues[key].item.asString },
+            NumberBox, { value = currentValues[key].value.asInteger },
+            TextField, { value = currentValues[key].value.asString },
+            CheckBox,  { value = currentValues[key].value.asBoolean }
+        );
         options.tryPerform(key.asSetter, value);
         if (verbose, {
             " - changed: % -> %".format(key, value).postln; "";
