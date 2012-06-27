@@ -205,19 +205,22 @@ ServerOptionsGui {
         ^view
     }
 
-    setAudioDevice {
+    setAudioDevice { |key, guiElement|
         // TODO: use jack_lsp on linux and SC_JACK_SERVER...
-        //Platform.case
-        /*
-        try { this.setPopupItems(
-            guiElement, ServerOptions.inDevices, serverOptions.inDevice
-        )}
-        if (key == \outDevice, {
-            try { this.setPopupItems(
-                guiElement, ServerOptions.outDevices, serverOptions.outDevice
-            )}
-        });
-        */
+        Platform.case(
+            \osx, {
+                var keys = (\inDevice: \inDevices, \outDevice: \outDevices);
+                try {
+                    this.setPopupItems(
+                        guiElement,
+                        ServerOptions.tryPerform(keys[key].asGetter),
+                        serverOptions.tryPerform(key.asGetter)
+                    )
+                } { |e|
+                    e.errorString.warn
+                }
+            }
+        );
     }
 
     setSimpleOption { |option, element|
