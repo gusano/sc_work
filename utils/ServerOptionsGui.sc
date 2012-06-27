@@ -180,6 +180,10 @@ ServerOptionsGui {
             guiElement = option[\type].new()
                 .action_{ option[\modified] = true };
 
+            if (key == \latency, {
+                guiElement.clipLo_(0).decimals_(2).scroll_step_(0.01)
+            });
+
             if (key == \device or: {key == \inDevice} or: {key == \outDevice}, {
                 grid.add(label, row, 0);
                 grid.addSpanning(guiElement, row, 1, 1, 2);
@@ -282,9 +286,15 @@ ServerOptionsGui {
         var value;
         switch (type,
             PopUpMenu, { value = currentValues[key].item.asString },
-            NumberBox, { value = currentValues[key].value.asInteger },
             TextField, { value = currentValues[key].value.asString },
-            CheckBox,  { value = currentValues[key].value.asBoolean }
+            CheckBox,  { value = currentValues[key].value.asBoolean },
+            NumberBox, {
+                if (key == \latency, {
+                    value = currentValues[key].value.asFloat
+                }, {
+                    value = currentValues[key].value.asInteger
+                })
+            }
         );
         options.tryPerform(key.asSetter, value);
         if (verbose, {
