@@ -288,7 +288,7 @@ ServerOptionsGui {
     setServerOption { |options, key, type|
         var value;
         switch (type,
-            PopUpMenu, { value = currentValues[key].item.asString },
+            PopUpMenu, { value = currentValues[key].item },
             TextField, { value = currentValues[key].value.asString },
             CheckBox,  { value = currentValues[key].value.asBoolean },
             NumberBox, {
@@ -306,16 +306,16 @@ ServerOptionsGui {
     }
 
     getSampleFormats {
-        //^[\int8, \int16, \int24, \int32, \mulaw, \alaw, \float]
-        ^[\int16, \int24, \int32, \float]
+        //^["int8", "int16", "int24", "int32", "mulaw", "alaw", "float"]
+        ^["int16", "int24", "int32", "float"]
     }
 
     getHeaderFormats {
         //^[
-        //    \aiff, \wav, \sun, \next, \sd2, \ircam, \raw, \mat4,
-        //    \mat5, \paf, \svx, \nist, \voc, \w64, \pvf, \xi, \htk,
-        //    \sds, \avr, \flac, \caf
+        //    "aiff", "wav", "sun", "next", "sd2", "ircam", "raw", "mat4",
+        //    "mat5", "paf", "svx", "nist", "voc", "w64", "pvf", "xi", "htk",
+        //    "sds", "avr", "flac", "caf"
         //]
-        ^[\aiff, \wav]
+        ^["aiff", "wav"]
     }
 }
