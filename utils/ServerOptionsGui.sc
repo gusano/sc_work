@@ -40,7 +40,7 @@ ServerOptionsGui {
         simpleViewOptions = (
             \numInputBusChannels:        (\type: NumberBox, \modified: nil, \pos: 2),
             \numOutputBusChannels:       (\type: NumberBox, \modified: nil, \pos: 3),
-            \sampleRate:                 (\type: NumberBox, \modified: nil, \pos: 4),
+            \sampleRate:                 (\type: PopUpMenu, \modified: nil, \pos: 4),
             \blockSize:                  (\type: NumberBox, \modified: nil, \pos: 5),
             \memSize:                    (\type: NumberBox, \modified: nil, \pos: 6),
             \numPrivateAudioBusChannels: (\type: NumberBox, \modified: nil, \pos: 7),
@@ -175,8 +175,6 @@ ServerOptionsGui {
             label = StaticText().string_(key)
                 .stringColor_(Color.new(0.1, 0.1, 0.1));
 
-            val = serverOptions.tryPerform(key.asGetter);
-
             guiElement = option[\type].new()
                 .action_{ option[\modified] = true };
 
@@ -193,10 +191,15 @@ ServerOptionsGui {
                 grid.add(guiElement, row, 2);
             });
 
+            val = serverOptions.tryPerform(key.asGetter);
             if (val.notNil, { guiElement.value_(val) });
 
             if (options == simpleOptions, {
                 this.setSimpleOption(key, guiElement)
+            });
+
+            if (key == \sampleRate, {
+                this.setSampleRate(guiElement);
             });
 
             currentValues.add(key -> guiElement);
@@ -303,6 +306,16 @@ ServerOptionsGui {
         if (verbose, {
             " - changed: % -> %".format(key, value).postln; "";
         })
+    }
+
+    setSampleRate { |element|
+        var rates = this.getSampleRates();
+        var current = server.sampleRate ?? 0;
+        this.setPopupItems(element, rates, current);
+    }
+
+    getSampleRates {
+        ^[0, 11025, 22050, 44100, 48000, 88200, 96000, 192000]
     }
 
     getSampleFormats {
