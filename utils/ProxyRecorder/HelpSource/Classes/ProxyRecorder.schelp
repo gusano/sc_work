@@ -1,0 +1,26 @@
+class:: ProxyRecorder
+summary:: Recorder each ProxySpace channels separately
+related:: ProxySpace, RecNodeProxy
+categories::  Libraries>JITLib
+
+Description::
+A handy class to record some ProxySpace channels separately.
+
+Jump to link::#Examples::
+
+
+Examples::
+code::
+p = ProxySpace.push(s.boot);
+
+~sin = { SinOsc.ar(SinOsc.kr(12!2, 0, 800, 400))}
+~fx = { PitchShift.ar(~sin.ar, 0.5, LFNoise2.kr(1!2, 0.3, 1))}
+
+~sin.play
+~fx.play
+
+r = ProxyRecorder(p)
+r.add([~sin, ~fx])
+r.record
+r.stop
+::
