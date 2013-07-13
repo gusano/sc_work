@@ -33,9 +33,10 @@ ProxyRecorder {
 
 	open { |proxies|
 		proxies.do{ |proxy, i|
-			var proxyName = proxy.asCompileString;
-			var fileName  = folder +/+ Date.getDate.format("%Y%m%d-%Hh%m-%s")
-				++ "-" ++ proxyName ++ headerFormat;
+			var dateTime  = Date.getDate.format("%Y%m%d-%Hh%m");
+			var fileName  = ("%/%-%.%").format(
+				folder, dateTime, proxy.asCompileString, headerFormat
+			);
 
 			nodes[i].open(fileName, headerFormat, sampleFormat);
 		}
