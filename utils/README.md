@@ -2,18 +2,8 @@ Some [SuperCollider](http://github.com/supercollider/supercollider) utilities.
 
 ServerOptionsGui
 ----------------
-GUI utility for setting Server options.
-
-#### Screenshot (both simple and advanced views):
-
-![My image](http://yvanvolochine.com/media/images/ServerOptionsGui.gif)
-
-#### Usage
-
-    s = Server.local;
-    g = ServerOptionsGui(s);
-Note that some settings need the Server to be rebooted for the changes to apply:
-    s.reboot;
+ServerOptionsGui moved to its own repository:
+http://github.com/gusano/ServerOptionsGui
 
 GamePad
 -------
